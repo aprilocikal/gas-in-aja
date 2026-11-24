@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -45,7 +45,7 @@ export default function AuthPage({ onAuthSuccess }) {
           uid: u.uid,
           email: u.email,
           displayName: u.displayName || displayName || 'Koder Baru',
-          photoURL: null,
+          photoURL: u.photoURL || null,
           xp: 0,
           gems: 0,
           hearts: 5,
@@ -63,45 +63,69 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  const handleEmailRegister = async (e) => {
+  // Smart Unified Email Auth: Auto-detects if user exists -> Login, if not -> Register!
+  const handleEmailSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
-      try {
-        await updateProfile(newUser, { displayName: displayName || 'Koder Baru' })
-      } catch (err) {
-        console.warn('Update profile warning:', err)
+      if (mode === 'register') {
+        try {
+          const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
+          try {
+            await updateProfile(newUser, { displayName: displayName || 'Koder Baru' })
+          } catch (err) {}
+          await handleFirestoreUser(newUser)
+          if (onAuthSuccess) onAuthSuccess(newUser)
+          else navigate('/learn', { replace: true })
+          return
+        } catch (regErr) {
+          // If already registered, automatically log in with the provided password
+          if (regErr.code === 'auth/email-already-in-use') {
+            const { user: existingUser } = await signInWithEmailAndPassword(auth, email, password)
+            await handleFirestoreUser(existingUser)
+            if (onAuthSuccess) onAuthSuccess(existingUser)
+            else navigate('/learn', { replace: true })
+            return
+          }
+          throw regErr
+        }
+      } else {
+        // In login mode: try login, if account not found, automatically register!
+        try {
+          const { user: loggedInUser } = await signInWithEmailAndPassword(auth, email, password)
+          await handleFirestoreUser(loggedInUser)
+          if (onAuthSuccess) onAuthSuccess(loggedInUser)
+          else navigate('/learn', { replace: true })
+          return
+        } catch (loginErr) {
+          if (loginErr.code === 'auth/user-not-found' || loginErr.code === 'auth/invalid-credential') {
+            // Attempt auto-register if new user
+            try {
+              const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
+              await handleFirestoreUser(newUser)
+              if (onAuthSuccess) onAuthSuccess(newUser)
+              else navigate('/learn', { replace: true })
+              return
+            } catch (autoErr) {
+              if (autoErr.code === 'auth/email-already-in-use') {
+                throw loginErr // Password was wrong for existing account
+              }
+              throw autoErr
+            }
+          }
+          throw loginErr
+        }
       }
-      await handleFirestoreUser(newUser)
-      if (onAuthSuccess) onAuthSuccess(newUser)
-      else navigate('/learn', { replace: true })
     } catch (err) {
-      console.error('Register error:', err)
+      console.error('Email auth error:', err)
       setError(friendlyError(err.code || err.message))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleEmailLogin = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const { user: loggedInUser } = await signInWithEmailAndPassword(auth, email, password)
-      await handleFirestoreUser(loggedInUser)
-      if (onAuthSuccess) onAuthSuccess(loggedInUser)
-      else navigate('/learn', { replace: true })
-    } catch (err) {
-      console.error('Login error:', err)
-      setError(friendlyError(err.code || err.message))
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  // Google Sign-In with auto account creation & login
   const handleGoogleLogin = async () => {
     setError('')
     setLoading(true)
@@ -129,18 +153,18 @@ export default function AuthPage({ onAuthSuccess }) {
 
   const friendlyError = (code) => {
     const map = {
-      'auth/email-already-in-use': 'Email ini sudah terdaftar. Silakan pilih tab "Masuk".',
+      'auth/email-already-in-use': 'Email ini sudah terdaftar. Memproses login otomatis...',
       'auth/invalid-email': 'Format email tidak valid.',
       'auth/weak-password': 'Password minimal 6 karakter.',
-      'auth/user-not-found': 'Akun belum terdaftar. Silakan klik tab "Daftar" di atas untuk membuat akun.',
-      'auth/wrong-password': 'Password salah. Coba periksa kembali atau gunakan Mode Tamu.',
+      'auth/user-not-found': 'Akun belum terdaftar. Dibuatkan akun baru...',
+      'auth/wrong-password': 'Password salah untuk akun ini. Coba periksa kembali.',
       'auth/too-many-requests': 'Terlalu banyak percobaan gagal. Silakan tunggu sebentar.',
       'auth/popup-closed-by-user': 'Jendela login Google ditutup sebelum selesai.',
       'auth/popup-blocked': 'Popup diblokir oleh browser. Izinkan popup untuk login Google.',
-      'auth/unauthorized-domain': 'Domain kinetixcode.vercel.app belum dimasukkan ke Authorized Domains Firebase. Anda bisa gunakan "Mode Tamu" untuk langsung mulai.',
-      'auth/invalid-credential': 'Email atau password salah / belum terdaftar. Jika akun baru, klik tab "Daftar" di atas.',
+      'auth/unauthorized-domain': 'Domain ini belum diotorisasi di Firebase. Gunakan "Mode Tamu" untuk langsung mulai.',
+      'auth/invalid-credential': 'Email atau password tidak cocok. Silakan coba lagi.',
     }
-    return map[code] || (code ? `Gagal login: ${code}. Anda bisa gunakan Mode Tamu.` : 'Terjadi kesalahan. Coba lagi.')
+    return map[code] || (code ? `Gagal login (${code}). Gunakan Mode Tamu jika butuh cepat.` : 'Terjadi kesalahan. Coba lagi.')
   }
 
   return (
@@ -203,7 +227,7 @@ export default function AuthPage({ onAuthSuccess }) {
         {/* Form */}
         <form
           className="auth-form"
-          onSubmit={mode === 'register' ? handleEmailRegister : handleEmailLogin}
+          onSubmit={handleEmailSubmit}
         >
           {mode === 'register' && (
             <div className="auth-field">
