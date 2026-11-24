@@ -31,6 +31,8 @@ import {
   LuChevronDown,
   LuChevronUp,
   LuPlay,
+  LuLogOut,
+  LuRefreshCw,
 } from 'react-icons/lu'
 import { programmingLanguages } from '../data/programmingLanguages'
 import { getCurriculumForLang, computeUnitUnlockStatus } from '../data/multiLevelCurriculum'
@@ -45,12 +47,14 @@ import {
   getStreakData,
   recordDailyActivity,
   getWeekStreakStatus,
+  getTodayDateString,
+  getDayDifference,
 } from '../utils/streakManager'
 import './DuolingoLearn.css'
 
 function DuolingoLearn() {
   const navigate = useNavigate()
-  const { user, userData, updateUserData } = useAuth()
+  const { user, userData, logout, updateUserData } = useAuth()
 
   const [selectedLangId, setSelectedLangId] = useState(userData?.selectedLang || 'python')
   const [showLangPicker, setShowLangPicker] = useState(false)
@@ -60,21 +64,26 @@ function DuolingoLearn() {
   const [activeUnitId, setActiveUnitId] = useState(1) // which unit is expanded
   const [activeQuizNode, setActiveQuizNode] = useState(null)
   const [activeModuleData, setActiveModuleData] = useState(null)
+  const [avatarVariant, setAvatarVariant] = useState(() => {
+    const saved = localStorage.getItem('kinetix_avatar_variant')
+    return saved ? parseInt(saved, 10) : Math.floor(Math.random() * 6)
+  })
 
   // Playground state
   const [playgroundCode, setPlaygroundCode] = useState('# Tulis kode kamu di sini\nprint("Hello, Kinetix!")')
   const [playgroundOutput, setPlaygroundOutput] = useState('')
   const [playgroundRunning, setPlaygroundRunning] = useState(false)
 
-  // Real Gamification Stats (synced with Firebase when user logged in)
+  // Real Gamification Stats (synced with Firebase when user logged in - starts at 0 for new accounts)
   const [streakData, setStreakData] = useState(() => getStreakData())
-  const [gems, setGems] = useState(userData?.gems ?? 1086)
+  const [gems, setGems] = useState(userData?.gems ?? 0)
   const [hearts, setHearts] = useState(userData?.hearts ?? 5)
   const [xp, setXp] = useState(userData?.xp ?? 0)
+  const currentStreak = user ? (userData?.streak ?? 0) : streakData.streak
 
   useEffect(() => {
     if (userData) {
-      setGems(userData.gems ?? 1086)
+      setGems(userData.gems ?? 0)
       setHearts(userData.hearts ?? 5)
       setXp(userData.xp ?? 0)
       if (userData.selectedLang) setSelectedLangId(userData.selectedLang)
@@ -116,13 +125,26 @@ function DuolingoLearn() {
 
   const handleCompleteModule = async (moduleXP) => {
     const newXP = xp + (moduleXP || 30)
+    const newGems = gems + 10
     setXp(newXP)
-    setGems((prev) => prev + 10)
+    setGems(newGems)
     const updated = recordDailyActivity()
     setStreakData(updated)
     playSoundCue('success')
     if (user) {
-      await updateUserData({ xp: newXP, gems: gems + 10 })
+      const today = getTodayDateString()
+      const lastDate = userData?.lastActiveDate || null
+      let nextStreak = userData?.streak ?? 0
+      if (lastDate !== today) {
+        const diff = getDayDifference(lastDate, today)
+        nextStreak = diff === 1 ? nextStreak + 1 : 1
+      }
+      await updateUserData({
+        xp: newXP,
+        gems: newGems,
+        streak: nextStreak,
+        lastActiveDate: today,
+      })
     }
     // Unlock check: auto-advance to next unit if threshold met
     const newUnits = computeUnitUnlockStatus(selectedLangId, newXP)
@@ -130,6 +152,19 @@ function DuolingoLearn() {
     if (nextUnlocked) {
       setTimeout(() => setActiveUnitId(activeUnitId + 1), 800)
     }
+  }
+
+  const handleRandomizeAvatar = () => {
+    const next = (avatarVariant + 1 + Math.floor(Math.random() * 4)) % 6
+    setAvatarVariant(next)
+    localStorage.setItem('kinetix_avatar_variant', String(next))
+    playSoundCue('click')
+  }
+
+  const handleLogout = async () => {
+    playSoundCue('click')
+    await logout()
+    navigate('/auth')
   }
 
   const handleRunPlayground = () => {
@@ -193,7 +228,7 @@ function DuolingoLearn() {
           onClick={() => { setShowStreakModal(true); playSoundCue('click') }}
         >
           <LuFlame size={18} className="icon-orange" />
-          <span className="m-stat-num">{streakData.streak}</span>
+          <span className="m-stat-num">{currentStreak}</span>
         </button>
 
         <div className="m-top-btn m-gem-badge">
@@ -303,15 +338,17 @@ function DuolingoLearn() {
         {/* VIEW A: MULTI-LEVEL BELAJAR PATH */}
         {activeNav === 'belajar' && (
           <div className="duo-path-stream">
-            {/* Top Language Banner */}
+            {/* Top Language & Guidebook Hero Banner */}
             <div className="duo-unit-banner">
               <div className="unit-banner-left">
                 <span className="unit-breadcrumb">
-                  <span className="unit-pill-tag">KINETIX CODE</span>
-                  {currentLang.name.toUpperCase()} LEARNING PATH
+                  <span className="unit-pill-tag">{currentLang.name.toUpperCase()}</span>
+                  JALUR PEMBELAJARAN INTERAKTIF
                 </span>
                 <h2 className="unit-banner-title">
-                  {getCurriculumForLang(selectedLangId).units[0]?.title || 'Kurikulum Interaktif'}
+                  {getCurriculumForLang(selectedLangId).units.find((u) => u.id === activeUnitId)?.title ||
+                    getCurriculumForLang(selectedLangId).units[0]?.title ||
+                    'Kurikulum Interaktif'}
                 </h2>
               </div>
               <button
@@ -323,164 +360,168 @@ function DuolingoLearn() {
               </button>
             </div>
 
-            {/* XP Progress Bar */}
+            {/* Full-Width XP & Level Progress Bar */}
             <div className="xp-progress-section">
               <div className="xp-progress-label">
+                <span className="xp-level-pill">LVL {Math.floor(xp / 100) + 1}</span>
                 <LuZap size={16} className="icon-orange" />
-                <span>Total XP: <strong>{xp}</strong></span>
+                <span><strong>{xp}</strong> XP</span>
               </div>
               <div className="xp-bar-track">
                 <div
                   className="xp-bar-fill"
-                  style={{ width: `${Math.min(100, (xp / 500) * 100)}%` }}
+                  style={{ width: `${Math.min(100, Math.max(4, (xp % 100)))}%` }}
                 />
               </div>
+              <span className="xp-next-target">{100 - (xp % 100)} XP ke Level {Math.floor(xp / 100) + 2}</span>
             </div>
 
-            {/* MULTI UNIT ACCORDION */}
+            {/* MULTI UNIT PIPELINE */}
             <div className="multi-unit-container">
-              {unitsWithStatus.map((unit, unitIdx) => (
-                <div
-                  key={unit.id}
-                  className={`unit-section ${unit.isUnlocked ? 'unit-unlocked' : 'unit-locked'} ${activeUnitId === unit.id ? 'unit-expanded' : ''}`}
-                >
-                  {/* Unit Header (clickable accordion toggle) */}
-                  <button
-                    className="unit-section-header"
-                    onClick={() => {
-                      if (!unit.isUnlocked) return
-                      playSoundCue('click')
-                      setActiveUnitId(activeUnitId === unit.id ? null : unit.id)
-                    }}
-                    style={{ '--unit-color': unit.theme }}
-                  >
-                    <div className="unit-header-left">
-                      <div className="unit-num-badge" style={{ background: unit.isUnlocked ? unit.theme : '#374151' }}>
-                        {unit.isCompleted ? (
-                          <LuCheck size={18} strokeWidth={3} />
-                        ) : unit.isUnlocked ? (
-                          <span>{unitIdx + 1}</span>
+              {unitsWithStatus.map((unit, unitIdx) => {
+                const isExpanded = activeUnitId === unit.id && unit.isUnlocked
+                return (
+                  <div key={unit.id} className="unit-block">
+                    {/* Sleek Unit Divider / Accordion Header */}
+                    <button
+                      className={`unit-banner-toggle ${unit.isUnlocked ? 'unlocked' : 'locked'} ${isExpanded ? 'expanded' : ''}`}
+                      onClick={() => {
+                        if (!unit.isUnlocked) return
+                        playSoundCue('click')
+                        setActiveUnitId(isExpanded ? null : unit.id)
+                      }}
+                      style={{ '--unit-color': unit.theme }}
+                    >
+                      <div className="unit-header-left">
+                        <div
+                          className="unit-num-badge"
+                          style={{ background: unit.isUnlocked ? unit.theme : '#2d3247' }}
+                        >
+                          {unit.isCompleted ? (
+                            <LuCheck size={18} strokeWidth={3} />
+                          ) : unit.isUnlocked ? (
+                            <span>{unitIdx + 1}</span>
+                          ) : (
+                            <LuLock size={16} />
+                          )}
+                        </div>
+                        <div className="unit-header-info">
+                          <span className="unit-section-label" style={{ color: unit.isUnlocked ? unit.theme : '#64748b' }}>
+                            {!unit.isUnlocked ? `UNIT ${unitIdx + 1} - TERKUNCI` : unit.isCompleted ? `UNIT ${unitIdx + 1} - SELESAI` : `UNIT ${unitIdx + 1}`}
+                          </span>
+                          <h3 className="unit-section-title">{unit.title}</h3>
+                          <p className="unit-section-subtitle">{unit.subtitle}</p>
+                        </div>
+                      </div>
+                      <div className="unit-header-right">
+                        {!unit.isUnlocked ? (
+                          <span className="unit-xp-required">
+                            <LuLock size={13} /> {unit.requiredXP} XP
+                          </span>
                         ) : (
-                          <LuLock size={16} />
+                          <>
+                            <span className="unit-xp-total">
+                              <LuStar size={13} /> {totalUnitXP(unit.id)} XP
+                            </span>
+                            {isExpanded ? <LuChevronUp size={18} /> : <LuChevronDown size={18} />}
+                          </>
                         )}
                       </div>
-                      <div className="unit-header-info">
-                        <span className="unit-section-label">
-                          {unit.isLocked ? 'TERKUNCI' : unit.isCompleted ? 'SELESAI' : `UNIT ${unitIdx + 1}`}
-                        </span>
-                        <h3 className="unit-section-title">{unit.title}</h3>
-                        <p className="unit-section-subtitle">{unit.subtitle}</p>
-                      </div>
-                    </div>
-                    <div className="unit-header-right">
-                      {!unit.isUnlocked && (
-                        <span className="unit-xp-required">
-                          <LuLock size={14} /> Butuh {unit.requiredXP} XP
-                        </span>
-                      )}
-                      {unit.isUnlocked && (
-                        <span className="unit-xp-total">
-                          <LuStar size={14} /> {totalUnitXP(unit.id)} XP
-                        </span>
-                      )}
-                      {unit.isUnlocked && (
-                        activeUnitId === unit.id
-                          ? <LuChevronUp size={20} />
-                          : <LuChevronDown size={20} />
-                      )}
-                    </div>
-                  </button>
+                    </button>
 
-                  {/* Unit Modules (expand/collapse) */}
-                  <AnimatePresence>
-                    {activeUnitId === unit.id && unit.isUnlocked && (
-                      <motion.div
-                        className="unit-modules-list"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {/* Snake-style path connector line */}
-                        <div className="modules-connector-line" style={{ background: unit.theme }} />
+                    {/* Spacious Kinetix Circuit Quest Pipeline */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          className="kinetix-quest-pipeline"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.28 }}
+                        >
+                          {unit.modules.map((mod, modIdx) => {
+                            const isModCompleted = userData?.completedModules?.includes(mod.id) || false
+                            const isModActive =
+                              !isModCompleted &&
+                              (modIdx === 0 || userData?.completedModules?.includes(unit.modules[modIdx - 1]?.id))
+                            const isLast = modIdx === unit.modules.length - 1
+                            const cardClass = isModCompleted
+                              ? 'quest-completed'
+                              : isModActive
+                              ? 'quest-active'
+                              : mod.type === 'simulator' && isModActive
+                              ? 'quest-ready'
+                              : 'quest-locked'
 
-                        {unit.modules.map((mod, modIdx) => {
-                          const isModCompleted = userData?.completedModules?.includes(mod.id) || false
-                          const isModActive = modIdx === 0 || (userData?.completedModules?.includes(unit.modules[modIdx - 1]?.id))
-                          return (
-                            <div
-                              key={mod.id}
-                              className={`module-card-row ${isModCompleted ? 'mod-completed' : isModActive ? 'mod-active' : 'mod-locked'}`}
-                            >
-                              {/* Node indicator on the left */}
-                              <div className="module-node" style={{
-                                background: isModCompleted ? '#22c55e' : isModActive ? unit.theme : '#374151',
-                                borderColor: isModCompleted ? '#16a34a' : isModActive ? unit.theme : '#1f2937',
-                              }}>
-                                {isModCompleted ? (
-                                  <LuCheck size={16} strokeWidth={3} />
-                                ) : (
-                                  getModuleIcon(mod.type)
-                                )}
-                              </div>
-
-                              {/* Module content */}
-                              <div className="module-card-body">
-                                <div className="module-card-top">
-                                  <span className="module-step-label">
-                                    MODUL {modIdx + 1}
-                                  </span>
-                                  <span
-                                    className="module-type-badge"
-                                    style={{ background: `${moduleTypeColor(mod.type)}22`, color: moduleTypeColor(mod.type), borderColor: `${moduleTypeColor(mod.type)}55` }}
-                                  >
-                                    {moduleTypeLabel(mod.type)}
-                                  </span>
-                                  <span className="module-xp-pill">+{mod.xpReward} XP</span>
+                            return (
+                              <div key={mod.id} className={`quest-pipeline-card ${cardClass}`}>
+                                <div className="quest-card-indicator">
+                                  <div className="quest-node-icon">
+                                    {isModCompleted ? (
+                                      <LuCheck size={20} strokeWidth={3} />
+                                    ) : isModActive ? (
+                                      <LuStar size={20} />
+                                    ) : (
+                                      getModuleIcon(mod.type)
+                                    )}
+                                  </div>
+                                  {!isLast && <div className="quest-connector-line" />}
                                 </div>
-                                <h4 className="module-title">{mod.title}</h4>
-                                <p className="module-desc">{mod.desc}</p>
-                                <button
-                                  className={`btn-module-action ${isModCompleted ? 'btn-repeat' : isModActive ? 'btn-primary-action' : 'btn-locked-action'}`}
-                                  onClick={() => handleOpenModule(unit, mod)}
-                                  disabled={!unit.isUnlocked}
-                                >
-                                  {isModCompleted ? (
-                                    <><LuPlay size={14} /> Ulangi</>
-                                  ) : isModActive ? (
-                                    <><LuSparkles size={14} /> Buka Kelas Interaktif</>
-                                  ) : (
-                                    <><LuLock size={14} /> Terkunci</>
-                                  )}
-                                </button>
+
+                                <div className="quest-card-content">
+                                  <div className="quest-card-top">
+                                    <span className={`quest-step-badge ${isModActive ? 'active-badge' : ''}`}>
+                                      MODUL {modIdx + 1} - {moduleTypeLabel(mod.type)}
+                                    </span>
+                                    <span
+                                      className={`quest-status-badge ${
+                                        isModCompleted ? 'badge-green' : isModActive ? 'badge-purple' : 'badge-gray'
+                                      }`}
+                                    >
+                                      {isModCompleted ? 'SELESAI' : `+${mod.xpReward} XP`}
+                                    </span>
+                                  </div>
+                                  <h4>{mod.title}</h4>
+                                  <p>{mod.desc}</p>
+                                  <button
+                                    className={`btn-quest-action ${
+                                      isModCompleted
+                                        ? ''
+                                        : isModActive
+                                        ? 'btn-quest-primary'
+                                        : 'btn-quest-locked'
+                                    }`}
+                                    onClick={() => handleOpenModule(unit, mod)}
+                                    disabled={!isModCompleted && !isModActive}
+                                  >
+                                    {isModCompleted ? (
+                                      <><LuPlay size={14} /> Ulangi Latihan</>
+                                    ) : isModActive ? (
+                                      <><LuSparkles size={15} /> BUKA KELAS INTERAKTIF</>
+                                    ) : (
+                                      <><LuLock size={14} /> Selesaikan Modul Sebelumnya</>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+
+                          {unit.isCompleted && (
+                            <div className="unit-complete-badge">
+                              <LuTrophy size={22} className="trophy-icon" />
+                              <div>
+                                <strong>Unit {unitIdx + 1} Selesai!</strong>
+                                <p>Lanjut ke unit berikutnya untuk tantangan lebih lanjut.</p>
                               </div>
                             </div>
-                          )
-                        })}
-
-                        {/* Unit Completion Badge */}
-                        {unit.isCompleted && (
-                          <div className="unit-complete-badge">
-                            <LuTrophy size={22} className="trophy-icon" />
-                            <div>
-                              <strong>Unit Selesai!</strong>
-                              <p>Lanjut ke unit berikutnya untuk tantangan lebih lanjut.</p>
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Locked Unit Overlay */}
-                  {!unit.isUnlocked && (
-                    <div className="unit-locked-info">
-                      <LuLock size={16} />
-                      <span>Selesaikan Unit {unitIdx} dan kumpulkan {unit.requiredXP} XP untuk membuka ini.</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -669,8 +710,8 @@ function DuolingoLearn() {
               onClick={() => { setShowStreakModal(true); playSoundCue('click') }}
             >
               <LuFlame size={20} className="icon-orange" />
-              <span className="stat-value">{streakData.streak}</span>
-              <div className="dot-alert" />
+              <span className="stat-value">{currentStreak}</span>
+              {currentStreak === 0 && <div className="dot-alert" />}
             </button>
 
             <div className="stat-btn gem-btn">
@@ -756,20 +797,28 @@ function DuolingoLearn() {
             <div className="right-card user-profile-card">
               <div className="card-top-row">
                 <h4>Akun</h4>
+                <button
+                  className="btn-avatar-shuffle"
+                  onClick={handleRandomizeAvatar}
+                  title="Ganti Avatar Random"
+                >
+                  <LuRefreshCw size={13} />
+                  <span>Ganti Avatar</span>
+                </button>
               </div>
               <div className="user-profile-row">
-                <div className="user-avatar-circle">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="avatar" />
-                  ) : (
-                    <LuUser size={22} />
-                  )}
+                <div className="user-avatar-circle" onClick={handleRandomizeAvatar} title="Klik untuk ganti avatar">
+                  <RandomCyberAvatar variant={avatarVariant} />
                 </div>
                 <div className="user-profile-info">
                   <strong>{user.displayName || 'Koder'}</strong>
                   <small>{user.email}</small>
                 </div>
               </div>
+              <button className="btn-logout-account" onClick={handleLogout}>
+                <LuLogOut size={15} />
+                <span>Keluar (Log Out)</span>
+              </button>
             </div>
           )}
         </aside>
@@ -808,7 +857,7 @@ function DuolingoLearn() {
               <div className="picker-header">
                 <div className="streak-header-title">
                   <LuFlame size={28} className="icon-orange" />
-                  <h3>Streak: {streakData.streak} Hari!</h3>
+                  <h3>Streak: {currentStreak} Hari!</h3>
                 </div>
                 <button className="modal-close" onClick={() => setShowStreakModal(false)}>
                   <LuX size={20} />
@@ -912,9 +961,30 @@ function DuolingoLearn() {
 }
 
 function getModuleIcon(type) {
-  if (type === 'quiz') return <LuSearch size={16} />
-  if (type === 'simulator') return <LuHeadphones size={16} />
-  return <LuBookOpen size={16} />
+  if (type === 'quiz') return <LuSearch size={18} />
+  if (type === 'simulator') return <LuHeadphones size={18} />
+  return <LuBookOpen size={18} />
+}
+
+const AVATAR_PALETTES = [
+  { bg: '#312e81', accent: '#8b5cf6', visor: '#38bdf8' },
+  { bg: '#064e3b', accent: '#10b981', visor: '#a7f3d0' },
+  { bg: '#7c2d12', accent: '#f97316', visor: '#fde047' },
+  { bg: '#831843', accent: '#ec4899', visor: '#f9a8d4' },
+  { bg: '#1e3a8a', accent: '#3b82f6', visor: '#67e8f9' },
+  { bg: '#4c1d95', accent: '#a855f7', visor: '#fbbf24' },
+]
+
+function RandomCyberAvatar({ variant = 0 }) {
+  const p = AVATAR_PALETTES[variant % AVATAR_PALETTES.length]
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="20" fill={p.bg} />
+      <circle cx="20" cy="17" r="7" fill={p.accent} />
+      <rect x="14" y="14" width="12" height="4.5" rx="2.2" fill={p.visor} />
+      <path d="M9 35C9 28.9249 13.9249 24 20 24C26.0751 24 31 28.9249 31 35" fill={p.accent} opacity="0.9" />
+    </svg>
+  )
 }
 
 export default DuolingoLearn

@@ -4,6 +4,10 @@
   border-radius: var(--radius-2xl);
   border: 1px solid var(--border-card);
   margin-top: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Topbar */
@@ -87,12 +91,17 @@
   display: grid;
   grid-template-columns: 1.35fr 1fr;
   gap: 2.25rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Bars Section */
 .bars-section {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .bars-header {
@@ -271,6 +280,8 @@
 .code-sync-section {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .code-sync-header {

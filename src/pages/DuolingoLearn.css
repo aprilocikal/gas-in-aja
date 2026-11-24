@@ -125,6 +125,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  min-width: 0;
 }
 
 .duo-path-stream {
@@ -970,6 +971,9 @@
 .duo-subview-wrap {
   width: 100%;
   max-width: 960px;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .subview-header {
@@ -2158,3 +2162,140 @@
 
 /* @keyframes spin already defined in AuthPage.css or global */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ============================================
+   CENTER UI REDESIGN & ACCOUNT LOGOUT STYLES
+   ============================================ */
+.xp-progress-section {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(18, 22, 38, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.xp-level-pill {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.06em;
+}
+
+.xp-next-target {
+  font-size: 0.75rem;
+  color: rgba(160, 165, 200, 0.7);
+  white-space: nowrap;
+}
+
+.multi-unit-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.unit-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.unit-banner-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.4rem;
+  background: rgba(18, 21, 36, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.unit-banner-toggle.unlocked:hover {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(24, 28, 48, 0.95);
+  transform: translateY(-1px);
+}
+
+.unit-banner-toggle.expanded {
+  border-color: var(--unit-color, #8b5cf6);
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.14);
+}
+
+.unit-banner-toggle.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.unit-block .kinetix-quest-pipeline {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.btn-avatar-shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-avatar-shuffle:hover {
+  background: rgba(139, 92, 246, 0.28);
+  color: #ffffff;
+}
+
+.user-avatar-circle {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.user-avatar-circle:hover {
+  transform: scale(1.06);
+}
+
+.btn-logout-account {
+  margin-top: 0.9rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-logout-account:hover {
+  background: rgba(239, 68, 68, 0.22);
+  color: #ffffff;
+}
