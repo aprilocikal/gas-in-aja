@@ -66,23 +66,6 @@ function Home() {
     },
   ]
 
-  const [streakCount, setStreakCount] = useState(() => getStreakData().streak || 0)
-
-  useEffect(() => {
-    const handleUpdate = (e) => {
-      if (e.detail) setStreakCount(e.detail.streak || 0)
-    }
-    window.addEventListener('streak-updated', handleUpdate)
-    return () => window.removeEventListener('streak-updated', handleUpdate)
-  }, [])
-
-  const stats = [
-    { icon: <LuCode size={28} className="icon-cyan" />, value: 12, suffix: '+', label: 'Bahasa Pemrograman' },
-    { icon: <LuZap size={28} className="icon-orange" />, value: 60, suffix: ' FPS', label: 'Engine Visualisasi' },
-    { icon: <LuFlame size={28} className="icon-orange" />, value: streakCount, suffix: ' Hari', label: 'Streak Belajar Real' },
-    { icon: <LuSparkles size={28} className="icon-violet" />, value: 99, suffix: '%', label: 'Intuisi Algoritma Paham' },
-  ]
-
   return (
     <div className="home">
       {/* ===== HERO SECTION ===== */}
@@ -138,31 +121,6 @@ function Home() {
               </div>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* ===== STATS SECTION ===== */}
-      <section className="section stats-section">
-        <div className="container">
-          <div className="stats-grid">
-            {stats.map((s, idx) => (
-              <motion.div
-                key={idx}
-                className="stat-card glass-card"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-              >
-                <div className="stat-icon-wrap">{s.icon}</div>
-                <div className="stat-value-wrap">
-                  <span className="stat-num">{s.value}</span>
-                  <span className="stat-suffix">{s.suffix}</span>
-                </div>
-                <span className="stat-label">{s.label}</span>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

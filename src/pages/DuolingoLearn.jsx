@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LuHouse,
   LuHeadphones,
-  LuDumbbell,
+  LuTerminal,
   LuShield,
   LuScroll,
   LuStore,
@@ -19,6 +19,7 @@ import {
   LuX,
   LuCode,
   LuLayers,
+  LuArrowRight,
   LuArrowLeft,
   LuSearch,
   LuTrophy,
@@ -26,14 +27,20 @@ import {
   LuGem,
   LuZap,
   LuVolume2,
+  LuLock,
+  LuChevronDown,
+  LuChevronUp,
+  LuPlay,
 } from 'react-icons/lu'
 import { programmingLanguages } from '../data/programmingLanguages'
+import { getCurriculumForLang, computeUnitUnlockStatus } from '../data/multiLevelCurriculum'
 import CharacterAvatar from '../components/CharacterAvatar'
 import AlgorithmVisualizer from '../components/AlgorithmVisualizer'
 import KinetixLogo from '../components/KinetixLogo'
 import TheoryGuidebook from '../components/TheoryGuidebook'
 import InteractiveLessonPack from '../components/InteractiveLessonPack'
 import { playSoundCue } from '../components/AccessibilityToolbar'
+import { useAuth } from '../contexts/AuthContext'
 import {
   getStreakData,
   recordDailyActivity,
@@ -43,19 +50,37 @@ import './DuolingoLearn.css'
 
 function DuolingoLearn() {
   const navigate = useNavigate()
-  const [selectedLangId, setSelectedLangId] = useState('python')
+  const { user, userData, updateUserData } = useAuth()
+
+  const [selectedLangId, setSelectedLangId] = useState(userData?.selectedLang || 'python')
   const [showLangPicker, setShowLangPicker] = useState(false)
   const [showTheoryGuide, setShowTheoryGuide] = useState(false)
   const [showStreakModal, setShowStreakModal] = useState(false)
   const [activeNav, setActiveNav] = useState('belajar')
+  const [activeUnitId, setActiveUnitId] = useState(1) // which unit is expanded
+  const [activeQuizNode, setActiveQuizNode] = useState(null)
+  const [activeModuleData, setActiveModuleData] = useState(null)
 
-  // Real Gamification Stats
+  // Playground state
+  const [playgroundCode, setPlaygroundCode] = useState('# Tulis kode kamu di sini\nprint("Hello, Kinetix!")')
+  const [playgroundOutput, setPlaygroundOutput] = useState('')
+  const [playgroundRunning, setPlaygroundRunning] = useState(false)
+
+  // Real Gamification Stats (synced with Firebase when user logged in)
   const [streakData, setStreakData] = useState(() => getStreakData())
-  const [gems, setGems] = useState(1086)
-  const [hearts, setHearts] = useState(5)
-  const [xp, setXp] = useState(420)
+  const [gems, setGems] = useState(userData?.gems ?? 1086)
+  const [hearts, setHearts] = useState(userData?.hearts ?? 5)
+  const [xp, setXp] = useState(userData?.xp ?? 0)
 
-  // Listen to streak updates across windows/components
+  useEffect(() => {
+    if (userData) {
+      setGems(userData.gems ?? 1086)
+      setHearts(userData.hearts ?? 5)
+      setXp(userData.xp ?? 0)
+      if (userData.selectedLang) setSelectedLangId(userData.selectedLang)
+    }
+  }, [userData])
+
   useEffect(() => {
     const handleStreakChange = (e) => {
       if (e.detail) setStreakData(e.detail)
@@ -64,129 +89,96 @@ function DuolingoLearn() {
     return () => window.removeEventListener('streak-updated', handleStreakChange)
   }, [])
 
-  // Quiz State
-  const [activeQuizNode, setActiveQuizNode] = useState(null)
-  const [currentQIndex, setCurrentQIndex] = useState(0)
-  const [selectedOption, setSelectedOption] = useState(null)
-  const [feedback, setFeedback] = useState(null)
-  const [quizFinished, setQuizFinished] = useState(false)
-
   const currentLang = programmingLanguages.find((l) => l.id === selectedLangId) || programmingLanguages[4]
 
-  const languageQuizzes = {
-    python: [
-      {
-        question: 'Pada iterasi Bubble Sort, jika arr[j] = 85 dan arr[j+1] = 20, aksi apa yang dilakukan Python?',
-        code: `if arr[j] > arr[j + 1]:\n    # Lengkapi aksi selanjutnya!`,
-        options: [
-          'Abaikan dan lanjut ke iterasi berikutnya',
-          'Tukar posisi (Swap): arr[j], arr[j+1] = arr[j+1], arr[j]',
-          'Hapus angka 85 dari daftar array',
-          'Ubah nilai arr[j] menjadi nol',
-        ],
-        answer: 1,
-        explanation: 'Karena 85 > 20, Bubble Sort menukar posisinya (Swap) agar elemen berbobot besar mengapung ke sisi kanan array.',
-      },
-      {
-        question: 'Berapakah nilai variabel hasil setelah pemanggilan fungsi berikut?',
-        code: `def kali_dua(n):\n    return n * 2 if n > 0 else 0\n\nhasil = kali_dua(5)`,
-        options: ['hasil = 5', 'hasil = 10', 'hasil = 0', 'Error sintaks'],
-        answer: 1,
-        explanation: 'Karena 5 > 0, ekspresi mengembalikan 5 * 2 = 10.',
-      },
-    ],
-    c: [
-      {
-        question: 'Pada bahasa C, apa yang dicetak oleh kode pointer berikut?',
-        code: `int a = 42;\nint *ptr = &a;\nprintf("%d", *ptr);`,
-        options: [
-          'Mencetak alamat memori (misal: 0x7ffee4a10)',
-          'Mencetak nilai asli dari a yaitu 42',
-          'Mencetak angka 0',
-          'Terjadi Segmentation Fault',
-        ],
-        answer: 1,
-        explanation: 'Operator dereferensi (*ptr) mengakses nilai aktual yang disimpan pada alamat memori yang ditunjuk, yaitu 42.',
-      },
-    ],
-    assembly: [
-      {
-        question: 'Instruksi x86-64 "mov rax, 60" dan "syscall" pada Linux digunakan untuk apa?',
-        code: `mov rax, 60    ; syscall number\nxor rdi, rdi   ; exit code 0\nsyscall`,
-        options: [
-          'Mengalokasikan memori dinamis di heap',
-          'Menghentikan program secara normal (sys_exit)',
-          'Membaca input dari keyboard (sys_read)',
-          'Mencetak string ke konsol (sys_write)',
-        ],
-        answer: 1,
-        explanation: 'Pada tabel syscall x86-64 Linux, nomor 60 adalah panggilan sistem sys_exit.',
-      },
-    ],
-    brainfuck: [
-      {
-        question: 'Perintah "+" dan ">" pada bahasa esoterik Brainfuck melakukan operasi apa pada pita memori?',
-        code: `+++>++`,
-        options: [
-          'Menambah nilai sel memori aktif lalu menggeser pointer sel ke kanan',
-          'Mencetak karakter ASCII ke layar',
-          'Memulai perulangan while',
-          'Menghapus seluruh memori RAM',
-        ],
-        answer: 0,
-        explanation: '"+" menambahkan nilai pada sel memori saat ini, sedangkan ">" menggeser pointer memori ke sel berikutnya di sebelah kanan.',
-      },
-    ],
+  // Compute multi-level unit status based on current XP
+  const unitsWithStatus = computeUnitUnlockStatus(selectedLangId, xp)
+
+  const handleSwitchLang = (langId) => {
+    setSelectedLangId(langId)
+    setActiveUnitId(1)
+    setShowLangPicker(false)
+    playSoundCue('success')
+    if (user) updateUserData({ selectedLang: langId })
   }
 
-  const activeQuestions = languageQuizzes[selectedLangId] || languageQuizzes.python
-
-  const handleStartNode = (nodeId) => {
+  const handleOpenModule = (unit, module) => {
+    if (!unit.isUnlocked) return
     playSoundCue('click')
-    setActiveQuizNode(nodeId)
-    setCurrentQIndex(0)
-    setSelectedOption(null)
-    setFeedback(null)
-    setQuizFinished(false)
-  }
-
-  const handleCheckAnswer = () => {
-    if (selectedOption === null) return
-    const currentQ = activeQuestions[currentQIndex] || activeQuestions[0]
-    const isCorrect = selectedOption === currentQ.answer
-    if (isCorrect) {
-      setFeedback('correct')
-      playSoundCue('success')
-      setXp((prev) => prev + 20)
-      setGems((prev) => prev + 5)
-      // Record real daily streak activity
-      const updated = recordDailyActivity()
-      setStreakData(updated)
+    setActiveModuleData({ unit, module })
+    if (module.type === 'simulator') {
+      setActiveNav('visualizer')
+      setActiveModuleData(null)
     } else {
-      setFeedback('wrong')
-      playSoundCue('click')
-      setHearts((prev) => Math.max(0, prev - 1))
+      setActiveQuizNode(`${unit.id}-${module.id}`)
     }
   }
 
-  const handleNextQuestion = () => {
-    if (currentQIndex < activeQuestions.length - 1) {
-      setCurrentQIndex((prev) => prev + 1)
-      setSelectedOption(null)
-      setFeedback(null)
-    } else {
-      setQuizFinished(true)
-      playSoundCue('success')
-      const updated = recordDailyActivity()
-      setStreakData(updated)
+  const handleCompleteModule = async (moduleXP) => {
+    const newXP = xp + (moduleXP || 30)
+    setXp(newXP)
+    setGems((prev) => prev + 10)
+    const updated = recordDailyActivity()
+    setStreakData(updated)
+    playSoundCue('success')
+    if (user) {
+      await updateUserData({ xp: newXP, gems: gems + 10 })
     }
+    // Unlock check: auto-advance to next unit if threshold met
+    const newUnits = computeUnitUnlockStatus(selectedLangId, newXP)
+    const nextUnlocked = newUnits.find((u) => u.id === activeUnitId + 1 && u.isUnlocked)
+    if (nextUnlocked) {
+      setTimeout(() => setActiveUnitId(activeUnitId + 1), 800)
+    }
+  }
+
+  const handleRunPlayground = () => {
+    setPlaygroundRunning(true)
+    setPlaygroundOutput('')
+    // Simulate execution (real execution needs backend)
+    setTimeout(() => {
+      const lines = playgroundCode.split('\n')
+      const outputs = []
+      lines.forEach((line) => {
+        if (line.trim().startsWith('print(')) {
+          const inner = line.match(/print\(["']?(.+?)["']?\)/)?.[1] || ''
+          outputs.push(inner)
+        } else if (line.trim().startsWith('console.log(')) {
+          const inner = line.match(/console\.log\(["']?(.+?)["']?\)/)?.[1] || ''
+          outputs.push(inner)
+        }
+      })
+      setPlaygroundOutput(
+        outputs.length > 0
+          ? outputs.join('\n')
+          : '// Eksekusi selesai. (Output print/console.log akan muncul di sini)'
+      )
+      setPlaygroundRunning(false)
+    }, 1200)
   }
 
   const weekStatus = getWeekStreakStatus()
+  const totalUnitXP = (unitId) => {
+    const curriculum = getCurriculumForLang(selectedLangId)
+    const unit = curriculum.units.find((u) => u.id === unitId)
+    if (!unit) return 0
+    return unit.modules.reduce((s, m) => s + m.xpReward, 0)
+  }
+
+  const moduleTypeLabel = (type) => {
+    if (type === 'quiz') return 'KUIS'
+    if (type === 'simulator') return 'SIMULATOR'
+    return 'MATERI'
+  }
+  const moduleTypeColor = (type) => {
+    if (type === 'quiz') return '#f97316'
+    if (type === 'simulator') return '#06b6d4'
+    return '#a78bfa'
+  }
 
   return (
     <div className="duo-layout-root">
-      {/* ===== MOBILE TOP BAR (Matches Native Duolingo Phone UI) ===== */}
+      {/* ===== MOBILE TOP BAR ===== */}
       <header className="duo-mobile-topbar">
         <button
           className="m-top-btn m-lang-badge"
@@ -215,7 +207,7 @@ function DuolingoLearn() {
         </div>
       </header>
 
-      {/* ===== 1. LEFT SIDEBAR (STICKY NAVIGATION ON DESKTOP) ===== */}
+      {/* ===== LEFT SIDEBAR ===== */}
       <aside className="duo-sidebar">
         <div className="duo-sidebar-top">
           <div className="duo-brand">
@@ -240,11 +232,11 @@ function DuolingoLearn() {
             </button>
 
             <button
-              className={`duo-nav-item ${activeNav === 'latihan' ? 'active' : ''}`}
-              onClick={() => handleStartNode(1)}
+              className={`duo-nav-item ${activeNav === 'playground' ? 'active' : ''}`}
+              onClick={() => { setActiveNav('playground'); playSoundCue('click') }}
             >
-              <div className="nav-icon-wrap"><LuDumbbell size={22} /></div>
-              <span className="nav-label">LATIHAN</span>
+              <div className="nav-icon-wrap"><LuTerminal size={22} /></div>
+              <span className="nav-label">PLAYGROUND</span>
             </button>
 
             <button
@@ -283,8 +275,8 @@ function DuolingoLearn() {
               className="duo-nav-item"
               onClick={() => { navigate('/'); playSoundCue('click') }}
             >
-              <div className="nav-icon-wrap"><LuInfo size={22} /></div>
-              <span className="nav-label">KEMBALI KE INFORMASI</span>
+              <div className="nav-icon-wrap"><LuArrowLeft size={22} /></div>
+              <span className="nav-label">KEMBALI</span>
             </button>
           </nav>
         </div>
@@ -294,34 +286,32 @@ function DuolingoLearn() {
             <CharacterAvatar size={48} emotion="happy" animated={false} />
             <div className="companion-speech-bubble">
               <span>
-                {streakData.streak === 0
-                  ? 'Mulai latihan hari ini untuk raih streak pertamamu!'
-                  : `Streak aktif: ${streakData.streak} Hari Berturut-turut!`}
+                {user
+                  ? `Halo ${user.displayName || 'Koder'}! XP: ${xp}`
+                  : streakData.streak === 0
+                  ? 'Mulai latihan hari ini!'
+                  : `Streak: ${streakData.streak} Hari!`}
               </span>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* ===== 2. CENTER STREAM (MAIN DUOLINGO LEARNING PATH) ===== */}
+      {/* ===== CENTER MAIN CONTENT ===== */}
       <main className="duo-main-content">
-        {/* VIEW A: BELAJAR (PATH ROADMAP) */}
+
+        {/* VIEW A: MULTI-LEVEL BELAJAR PATH */}
         {activeNav === 'belajar' && (
           <div className="duo-path-stream">
-            {/* Top Unit Banner */}
+            {/* Top Language Banner */}
             <div className="duo-unit-banner">
               <div className="unit-banner-left">
                 <span className="unit-breadcrumb">
-                  <span className="unit-pill-tag">UNIT 1</span> BAGIAN 1 - {currentLang.name.toUpperCase()}
+                  <span className="unit-pill-tag">KINETIX CODE</span>
+                  {currentLang.name.toUpperCase()} LEARNING PATH
                 </span>
                 <h2 className="unit-banner-title">
-                  {selectedLangId === 'c'
-                    ? 'Manajemen Pointer & Alokasi Memori'
-                    : selectedLangId === 'assembly'
-                    ? 'Manipulasi Register CPU & Syscall'
-                    : selectedLangId === 'brainfuck'
-                    ? 'Navigasi Pita Sel Memori Turing'
-                    : 'Visualisasi Algoritma & Penukaran Elemen'}
+                  {getCurriculumForLang(selectedLangId).units[0]?.title || 'Kurikulum Interaktif'}
                 </h2>
               </div>
               <button
@@ -333,137 +323,246 @@ function DuolingoLearn() {
               </button>
             </div>
 
-            <div className="unit-divider">
-              <span>Alur Pembelajaran Algoritma Kinetix</span>
+            {/* XP Progress Bar */}
+            <div className="xp-progress-section">
+              <div className="xp-progress-label">
+                <LuZap size={16} className="icon-orange" />
+                <span>Total XP: <strong>{xp}</strong></span>
+              </div>
+              <div className="xp-bar-track">
+                <div
+                  className="xp-bar-fill"
+                  style={{ width: `${Math.min(100, (xp / 500) * 100)}%` }}
+                />
+              </div>
             </div>
 
-            {/* KINETIX CIRCUIT QUEST PIPELINE (Replaces identical Duolingo snake path) */}
-            <div className="kinetix-quest-pipeline">
-              {/* Unit Card 1: Completed */}
-              <div className="quest-pipeline-card quest-completed">
-                <div className="quest-card-indicator">
-                  <div className="quest-node-icon"><LuCheck size={20} strokeWidth={3} /></div>
-                  <div className="quest-connector-line" />
-                </div>
-                <div className="quest-card-content">
-                  <div className="quest-card-top">
-                    <span className="quest-step-badge">MODUL 1</span>
-                    <span className="quest-status-badge badge-green">SELESAI</span>
-                  </div>
-                  <h4>Fondasi Array & Struktur Data</h4>
-                  <p>Inisialisasi memori indeks 0..n-1 dan pemetaan alamat.</p>
-                  <button className="btn-quest-action" onClick={() => handleStartNode(1)}>
-                    Ulangi Latihan
+            {/* MULTI UNIT ACCORDION */}
+            <div className="multi-unit-container">
+              {unitsWithStatus.map((unit, unitIdx) => (
+                <div
+                  key={unit.id}
+                  className={`unit-section ${unit.isUnlocked ? 'unit-unlocked' : 'unit-locked'} ${activeUnitId === unit.id ? 'unit-expanded' : ''}`}
+                >
+                  {/* Unit Header (clickable accordion toggle) */}
+                  <button
+                    className="unit-section-header"
+                    onClick={() => {
+                      if (!unit.isUnlocked) return
+                      playSoundCue('click')
+                      setActiveUnitId(activeUnitId === unit.id ? null : unit.id)
+                    }}
+                    style={{ '--unit-color': unit.theme }}
+                  >
+                    <div className="unit-header-left">
+                      <div className="unit-num-badge" style={{ background: unit.isUnlocked ? unit.theme : '#374151' }}>
+                        {unit.isCompleted ? (
+                          <LuCheck size={18} strokeWidth={3} />
+                        ) : unit.isUnlocked ? (
+                          <span>{unitIdx + 1}</span>
+                        ) : (
+                          <LuLock size={16} />
+                        )}
+                      </div>
+                      <div className="unit-header-info">
+                        <span className="unit-section-label">
+                          {unit.isLocked ? 'TERKUNCI' : unit.isCompleted ? 'SELESAI' : `UNIT ${unitIdx + 1}`}
+                        </span>
+                        <h3 className="unit-section-title">{unit.title}</h3>
+                        <p className="unit-section-subtitle">{unit.subtitle}</p>
+                      </div>
+                    </div>
+                    <div className="unit-header-right">
+                      {!unit.isUnlocked && (
+                        <span className="unit-xp-required">
+                          <LuLock size={14} /> Butuh {unit.requiredXP} XP
+                        </span>
+                      )}
+                      {unit.isUnlocked && (
+                        <span className="unit-xp-total">
+                          <LuStar size={14} /> {totalUnitXP(unit.id)} XP
+                        </span>
+                      )}
+                      {unit.isUnlocked && (
+                        activeUnitId === unit.id
+                          ? <LuChevronUp size={20} />
+                          : <LuChevronDown size={20} />
+                      )}
+                    </div>
                   </button>
-                </div>
-              </div>
 
-              {/* Unit Card 2: Active (Current Challenge) */}
-              <div className="quest-pipeline-card quest-active">
-                <div className="quest-card-indicator">
-                  <div className="quest-node-icon pulse-active"><LuStar size={20} /></div>
-                  <div className="quest-connector-line" />
-                </div>
-                <div className="quest-card-content">
-                  <div className="quest-card-top">
-                    <span className="quest-step-badge active-badge">MODUL 2 (AKTIF)</span>
-                    <span className="quest-status-badge badge-purple">+30 XP</span>
-                  </div>
-                  <h4>Komparasi Pasangan & Swap Elemen</h4>
-                  <p>Logika pertukaran dua variabel bertetangga secara real-time.</p>
-                  <button className="btn-quest-action btn-quest-primary" onClick={() => handleStartNode(2)}>
-                    <LuSparkles size={16} /> BUKA KELAS INTERAKTIF
-                  </button>
-                </div>
-              </div>
+                  {/* Unit Modules (expand/collapse) */}
+                  <AnimatePresence>
+                    {activeUnitId === unit.id && unit.isUnlocked && (
+                      <motion.div
+                        className="unit-modules-list"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {/* Snake-style path connector line */}
+                        <div className="modules-connector-line" style={{ background: unit.theme }} />
 
-              {/* Unit Card 3: Interactive Visualizer Checkpoint */}
-              <div className="quest-pipeline-card quest-ready">
-                <div className="quest-card-indicator">
-                  <div className="quest-node-icon"><LuHeadphones size={20} /></div>
-                  <div className="quest-connector-line" />
-                </div>
-                <div className="quest-card-content">
-                  <div className="quest-card-top">
-                    <span className="quest-step-badge">LAB 3</span>
-                    <span className="quest-status-badge badge-cyan">SIMULATOR</span>
-                  </div>
-                  <h4>Simulasi Algoritma 60 FPS</h4>
-                  <p>Uji coba visualizer Bubble Sort, Pointer C, dan Mesin Turing.</p>
-                  <button className="btn-quest-action btn-quest-cyan" onClick={() => { setActiveNav('visualizer'); playSoundCue('click') }}>
-                    Buka Simulator
-                  </button>
-                </div>
-              </div>
+                        {unit.modules.map((mod, modIdx) => {
+                          const isModCompleted = userData?.completedModules?.includes(mod.id) || false
+                          const isModActive = modIdx === 0 || (userData?.completedModules?.includes(unit.modules[modIdx - 1]?.id))
+                          return (
+                            <div
+                              key={mod.id}
+                              className={`module-card-row ${isModCompleted ? 'mod-completed' : isModActive ? 'mod-active' : 'mod-locked'}`}
+                            >
+                              {/* Node indicator on the left */}
+                              <div className="module-node" style={{
+                                background: isModCompleted ? '#22c55e' : isModActive ? unit.theme : '#374151',
+                                borderColor: isModCompleted ? '#16a34a' : isModActive ? unit.theme : '#1f2937',
+                              }}>
+                                {isModCompleted ? (
+                                  <LuCheck size={16} strokeWidth={3} />
+                                ) : (
+                                  getModuleIcon(mod.type)
+                                )}
+                              </div>
 
-              {/* Unit Card 4: Locked */}
-              <div className="quest-pipeline-card quest-locked">
-                <div className="quest-card-indicator">
-                  <div className="quest-node-icon"><LuLayers size={20} /></div>
-                  <div className="quest-connector-line" />
-                </div>
-                <div className="quest-card-content">
-                  <div className="quest-card-top">
-                    <span className="quest-step-badge">MODUL 4</span>
-                    <span className="quest-status-badge badge-gray">TERKUNCI</span>
-                  </div>
-                  <h4>Manajemen Pointer & Alokasi RAM C</h4>
-                  <p>Manipulasi alamat memori fisik dan dereferensi pointer.</p>
-                  <button className="btn-quest-action btn-quest-locked" disabled>
-                    Terkunci
-                  </button>
-                </div>
-              </div>
+                              {/* Module content */}
+                              <div className="module-card-body">
+                                <div className="module-card-top">
+                                  <span className="module-step-label">
+                                    MODUL {modIdx + 1}
+                                  </span>
+                                  <span
+                                    className="module-type-badge"
+                                    style={{ background: `${moduleTypeColor(mod.type)}22`, color: moduleTypeColor(mod.type), borderColor: `${moduleTypeColor(mod.type)}55` }}
+                                  >
+                                    {moduleTypeLabel(mod.type)}
+                                  </span>
+                                  <span className="module-xp-pill">+{mod.xpReward} XP</span>
+                                </div>
+                                <h4 className="module-title">{mod.title}</h4>
+                                <p className="module-desc">{mod.desc}</p>
+                                <button
+                                  className={`btn-module-action ${isModCompleted ? 'btn-repeat' : isModActive ? 'btn-primary-action' : 'btn-locked-action'}`}
+                                  onClick={() => handleOpenModule(unit, mod)}
+                                  disabled={!unit.isUnlocked}
+                                >
+                                  {isModCompleted ? (
+                                    <><LuPlay size={14} /> Ulangi</>
+                                  ) : isModActive ? (
+                                    <><LuSparkles size={14} /> Buka Kelas Interaktif</>
+                                  ) : (
+                                    <><LuLock size={14} /> Terkunci</>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
 
-              {/* Unit Card 5: Final Trophy */}
-              <div className="quest-pipeline-card quest-locked">
-                <div className="quest-card-indicator">
-                  <div className="quest-node-icon"><LuTrophy size={20} /></div>
+                        {/* Unit Completion Badge */}
+                        {unit.isCompleted && (
+                          <div className="unit-complete-badge">
+                            <LuTrophy size={22} className="trophy-icon" />
+                            <div>
+                              <strong>Unit Selesai!</strong>
+                              <p>Lanjut ke unit berikutnya untuk tantangan lebih lanjut.</p>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Locked Unit Overlay */}
+                  {!unit.isUnlocked && (
+                    <div className="unit-locked-info">
+                      <LuLock size={16} />
+                      <span>Selesaikan Unit {unitIdx} dan kumpulkan {unit.requiredXP} XP untuk membuka ini.</span>
+                    </div>
+                  )}
                 </div>
-                <div className="quest-card-content">
-                  <div className="quest-card-top">
-                    <span className="quest-step-badge">FINAL</span>
-                    <span className="quest-status-badge badge-gold">TANTANGAN PRO</span>
-                  </div>
-                  <h4>Evaluasi Logika Komputasi</h4>
-                  <p>Uji pemahaman komprehensif seluruh paradigma bahasa.</p>
-                  <button className="btn-quest-action btn-quest-locked" disabled>
-                    Terkunci
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* VIEW B: DIRECT ALGORITHM VISUALIZER */}
+        {/* VIEW B: ALGORITHM VISUALIZER */}
         {activeNav === 'visualizer' && (
           <div className="duo-subview-wrap">
             <div className="subview-header">
-              <h2>Visualizer Algoritma & Memori Real-Time</h2>
-              <p>Simulasi eksekusi instruksi {currentLang.name} 60 FPS.</p>
+              <h2>Visualizer Algoritma Real-Time</h2>
+              <p>Simulasi 60 FPS untuk {currentLang.name}.</p>
             </div>
             <AlgorithmVisualizer />
           </div>
         )}
 
-        {/* VIEW C: ALL PROGRAMMING LANGUAGES CATALOG */}
+        {/* VIEW C: CODE PLAYGROUND */}
+        {activeNav === 'playground' && (
+          <div className="duo-subview-wrap playground-view">
+            <div className="subview-header">
+              <h2><LuTerminal size={22} className="icon-inline" /> Code Playground</h2>
+              <p>Tulis dan jalankan kode {currentLang.name} langsung di browser.</p>
+            </div>
+            <div className="playground-container">
+              <div className="playground-toolbar">
+                <div className="playground-lang-badge" style={{ color: currentLang.color }}>
+                  <LuCode size={15} />
+                  <span>{currentLang.name}</span>
+                </div>
+                <button
+                  className="btn-run-code"
+                  onClick={handleRunPlayground}
+                  disabled={playgroundRunning}
+                >
+                  {playgroundRunning ? (
+                    <span className="run-spinner" />
+                  ) : (
+                    <><LuPlay size={16} /> Jalankan Kode</>
+                  )}
+                </button>
+              </div>
+              <div className="playground-editor-wrap">
+                <div className="editor-line-numbers">
+                  {playgroundCode.split('\n').map((_, i) => (
+                    <span key={i}>{i + 1}</span>
+                  ))}
+                </div>
+                <textarea
+                  className="playground-editor"
+                  value={playgroundCode}
+                  onChange={(e) => setPlaygroundCode(e.target.value)}
+                  spellCheck={false}
+                  placeholder="// Tulis kode kamu di sini..."
+                />
+              </div>
+              <div className="playground-console">
+                <div className="console-header">
+                  <span className="console-dot red" /><span className="console-dot yellow" /><span className="console-dot green" />
+                  <span className="console-title">Output Console</span>
+                </div>
+                <pre className="console-output">
+                  {playgroundRunning
+                    ? '// Menjalankan kode...'
+                    : playgroundOutput || '// Tekan "Jalankan Kode" untuk melihat output'}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW D: ALL LANGUAGES CATALOG */}
         {activeNav === 'bahasa' && (
           <div className="duo-subview-wrap">
             <div className="subview-header">
-              <h2>Katalog Seluruh Bahasa Pemrograman</h2>
-              <p>Pilih bahasa apapun: dari level terendah Assembly hingga bahasa tersulit Brainfuck.</p>
+              <h2>Katalog Bahasa Pemrograman</h2>
+              <p>Dari Assembly bare-metal hingga Brainfuck esoterik.</p>
             </div>
             <div className="languages-cards-grid">
               {programmingLanguages.map((lang) => (
                 <div
                   key={lang.id}
                   className={`duo-lang-card ${selectedLangId === lang.id ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedLangId(lang.id)
-                    setActiveNav('belajar')
-                    playSoundCue('success')
-                  }}
+                  onClick={() => handleSwitchLang(lang.id)}
                 >
                   <div className="duo-lang-top">
                     <span className="lang-tag-pill" style={{ color: lang.color, borderColor: lang.color }}>
@@ -486,19 +585,19 @@ function DuolingoLearn() {
           </div>
         )}
 
-        {/* VIEW D: PAPAN SKOR / LEADERBOARD */}
+        {/* VIEW E: PAPAN SKOR */}
         {activeNav === 'papan-skor' && (
           <div className="duo-subview-wrap">
             <div className="subview-header">
-              <h2><LuShield size={22} className="icon-inline" /> Liga Berlian (Diamond League)</h2>
-              <p>Peringkat koder teraktif minggu ini di Kinetix Code.</p>
+              <h2><LuShield size={22} className="icon-inline" /> Liga Berlian</h2>
+              <p>Peringkat koder teraktif minggu ini.</p>
             </div>
             <div className="leaderboard-table glass-card">
               {[
                 { rank: 1, name: 'Budi Santoso', xp: 2450, lang: 'Python' },
                 { rank: 2, name: 'Siti Rahma', xp: 2120, lang: 'C++' },
                 { rank: 3, name: 'Devan Putra', xp: 1890, lang: 'Rust' },
-                { rank: 4, name: 'Kamu (Aktif)', xp: 1465, lang: currentLang.name, isUser: true },
+                { rank: 4, name: user?.displayName || 'Kamu (Aktif)', xp: xp || 420, lang: currentLang.name, isUser: true },
                 { rank: 5, name: 'Farhan Code', xp: 1220, lang: 'Assembly' },
               ].map((entry) => (
                 <div key={entry.rank} className={`lb-row ${entry.isUser ? 'lb-user-row' : ''}`}>
@@ -515,28 +614,36 @@ function DuolingoLearn() {
           </div>
         )}
 
-        {/* VIEW E: MISI HARIAN */}
+        {/* VIEW F: MISI HARIAN */}
         {activeNav === 'misi' && (
           <div className="duo-subview-wrap">
             <div className="subview-header">
-              <h2><LuScroll size={22} className="icon-inline" /> Misi Harian Belajar</h2>
-              <p>Selesaikan misi untuk mendapatkan bonus XP dan menjaga streak!</p>
+              <h2><LuScroll size={22} className="icon-inline" /> Misi Harian</h2>
+              <p>Selesaikan misi untuk XP dan streak bonus!</p>
             </div>
             <div className="quests-list">
               <div className="quest-card glass-card">
                 <div className="quest-icon"><LuZap size={22} /></div>
                 <div className="quest-info">
                   <strong>Dapatkan 20 XP</strong>
-                  <div className="quest-bar"><div className="quest-fill" style={{ width: '75%' }} /></div>
-                  <small>15 / 20 XP</small>
+                  <div className="quest-bar"><div className="quest-fill" style={{ width: `${Math.min(100, (xp / 20) * 100)}%` }} /></div>
+                  <small>{Math.min(xp, 20)} / 20 XP</small>
                 </div>
               </div>
               <div className="quest-card glass-card">
                 <div className="quest-icon"><LuStar size={22} /></div>
                 <div className="quest-info">
-                  <strong>Jalankan Visualisasi Bubble Sort 1 Kali</strong>
+                  <strong>Jalankan 1 Simulasi Visualizer</strong>
                   <div className="quest-bar"><div className="quest-fill" style={{ width: '100%' }} /></div>
                   <small>1 / 1 Selesai</small>
+                </div>
+              </div>
+              <div className="quest-card glass-card">
+                <div className="quest-icon"><LuCode size={22} /></div>
+                <div className="quest-info">
+                  <strong>Buka 1 Kelas Interaktif</strong>
+                  <div className="quest-bar"><div className="quest-fill" style={{ width: userData?.completedModules?.length > 0 ? '100%' : '0%' }} /></div>
+                  <small>{userData?.completedModules?.length > 0 ? '1 / 1' : '0 / 1'} Selesai</small>
                 </div>
               </div>
             </div>
@@ -544,141 +651,150 @@ function DuolingoLearn() {
         )}
       </main>
 
-      {/* ===== 3. RIGHT SIDEBAR (STATS, SUPER, LEAGUE, QUESTS ON DESKTOP) ===== */}
-      <aside className="duo-right-panel">
-        {/* Real Stats Bar */}
-        <div className="right-top-stats">
-          <button
-            className="stat-btn lang-badge-btn"
-            onClick={() => { setShowLangPicker(true); playSoundCue('click') }}
-            title="Ganti Bahasa Pemrograman"
-          >
-            <span className="flag-icon"><LuCode size={18} /></span>
-            <span className="lang-code-short">{selectedLangId.toUpperCase().slice(0, 3)}</span>
-          </button>
-          
-          <button
-            className="stat-btn streak-btn"
-            onClick={() => { setShowStreakModal(true); playSoundCue('click') }}
-            title="Lihat Detail Streak Real"
-          >
-            <LuFlame size={20} className="icon-orange" />
-            <span className="stat-value">{streakData.streak}</span>
-            <div className="dot-alert" />
-          </button>
+      {/* ===== RIGHT PANEL (hidden on visualizer & playground) ===== */}
+      {activeNav !== 'visualizer' && activeNav !== 'playground' && (
+        <aside className="duo-right-panel">
+          <div className="right-top-stats">
+            <button
+              className="stat-btn lang-badge-btn"
+              onClick={() => { setShowLangPicker(true); playSoundCue('click') }}
+              title="Ganti Bahasa"
+            >
+              <span className="flag-icon"><LuCode size={18} /></span>
+              <span className="lang-code-short">{selectedLangId.toUpperCase().slice(0, 3)}</span>
+            </button>
 
-          <div className="stat-btn gem-btn">
-            <LuGem size={20} className="icon-cyan" />
-            <span className="stat-value">{gems}</span>
-          </div>
+            <button
+              className="stat-btn streak-btn"
+              onClick={() => { setShowStreakModal(true); playSoundCue('click') }}
+            >
+              <LuFlame size={20} className="icon-orange" />
+              <span className="stat-value">{streakData.streak}</span>
+              <div className="dot-alert" />
+            </button>
 
-          <div className="stat-btn heart-btn">
-            <LuHeart size={20} className="icon-red" />
-            <span className="stat-value">{hearts}</span>
-          </div>
-        </div>
+            <div className="stat-btn gem-btn">
+              <LuGem size={20} className="icon-cyan" />
+              <span className="stat-value">{gems}</span>
+            </div>
 
-        {/* Lab & Mode Tantangan (Bukan langganan / non-subscription) */}
-        <div className="right-card super-card lab-challenge-card">
-          <div className="super-header">
-            <span className="super-badge" style={{ background: '#7c3aed', color: '#ffffff' }}>MODE TANTANGAN</span>
-            <div className="super-char-badge">
-              <CharacterAvatar size={70} emotion="happy" animated={true} />
+            <div className="stat-btn heart-btn">
+              <LuHeart size={20} className="icon-red" />
+              <span className="stat-value">{hearts}</span>
             </div>
           </div>
-          <h3 className="super-title">Lab Logika & Algoritma</h3>
-          <p className="super-desc">
-            Uji pemahaman komputasi dengan simulasi algoritma tingkat lanjut 60 FPS dan raih lencana eksklusif!
-          </p>
-          <button className="btn-super-cta" onClick={() => { setActiveNav('visualizer'); playSoundCue('success') }}>
-            JELAJAHI LAB VISUALIZER
-          </button>
-        </div>
 
-        {/* Liga */}
-        <div className="right-card league-card">
-          <div className="card-top-row">
-            <h4>Papan Skor</h4>
-            <button className="link-sub" onClick={() => setActiveNav('papan-skor')}>KE PAPAN SKOR</button>
+          {/* Lab Challenge Card */}
+          <div className="right-card super-card lab-challenge-card">
+            <div className="super-header">
+              <span className="lab-challenge-badge">MODE TANTANGAN</span>
+              <div className="super-char-badge">
+                <CharacterAvatar size={70} emotion="happy" animated={true} />
+              </div>
+            </div>
+            <h3 className="super-title">Lab Logika & Algoritma</h3>
+            <p className="super-desc">
+              Uji pemahaman komputasi dengan simulasi algoritma tingkat lanjut 60 FPS dan raih lencana eksklusif!
+            </p>
+            <button className="btn-super-cta" onClick={() => { setActiveNav('visualizer'); playSoundCue('success') }}>
+              JELAJAHI LAB VISUALIZER
+            </button>
           </div>
-          <div className="league-content">
-            <div className="shield-icon-badge"><LuShield size={28} className="icon-cyan" /></div>
-            <div>
-              <strong>Selamat!</strong>
-              <p>Kamu meraih peringkat #4 dan masuk 5 besar Liga Berlian!</p>
+
+          {/* XP Progress Right Panel */}
+          <div className="right-card league-card">
+            <div className="card-top-row">
+              <h4>Progres Belajar</h4>
+              <span className="xp-right-total">{xp} XP</span>
+            </div>
+            <div className="right-unit-progress">
+              {unitsWithStatus.map((unit, i) => (
+                <div key={unit.id} className="right-unit-row">
+                  <div
+                    className="right-unit-dot"
+                    style={{ background: unit.isUnlocked ? unit.theme : '#374151' }}
+                  >
+                    {unit.isCompleted ? <LuCheck size={10} /> : unit.isUnlocked ? <span>{i + 1}</span> : <LuLock size={10} />}
+                  </div>
+                  <div className="right-unit-info">
+                    <span className="right-unit-name">{unit.title}</span>
+                    <div className="right-unit-bar">
+                      <div
+                        className="right-unit-fill"
+                        style={{
+                          width: unit.isUnlocked
+                            ? `${Math.min(100, Math.max(0, ((xp - unit.requiredXP) / totalUnitXP(unit.id)) * 100))}%`
+                            : '0%',
+                          background: unit.theme,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        {/* Misi Harian */}
-        <div className="right-card quests-card">
-          <div className="card-top-row">
-            <h4>Misi Harian</h4>
-            <button className="link-sub" onClick={() => setActiveNav('misi')}>LIHAT SEMUA</button>
-          </div>
-          <div className="quest-mini-row">
-            <div className="quest-bolt-icon"><LuZap size={18} /></div>
-            <div className="quest-mini-progress">
-              <div className="quest-mini-title">Dapatkan 20 XP</div>
-              <div className="mini-bar"><div className="mini-fill" style={{ width: '75%' }} /></div>
-              <small>15 / 20</small>
+          {/* Misi Harian */}
+          <div className="right-card quests-card">
+            <div className="card-top-row">
+              <h4>Misi Harian</h4>
+              <button className="link-sub" onClick={() => setActiveNav('misi')}>LIHAT SEMUA</button>
+            </div>
+            <div className="quest-mini-row">
+              <div className="quest-bolt-icon"><LuZap size={18} /></div>
+              <div className="quest-mini-progress">
+                <div className="quest-mini-title">Dapatkan 20 XP</div>
+                <div className="mini-bar"><div className="mini-fill" style={{ width: `${Math.min(100, (xp / 20) * 100)}%` }} /></div>
+                <small>{Math.min(xp, 20)} / 20</small>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
 
-      {/* ===== MOBILE BOTTOM NAVIGATION BAR (Duolingo App Native Style) ===== */}
+          {/* User profile card if logged in */}
+          {user && (
+            <div className="right-card user-profile-card">
+              <div className="card-top-row">
+                <h4>Akun</h4>
+              </div>
+              <div className="user-profile-row">
+                <div className="user-avatar-circle">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="avatar" />
+                  ) : (
+                    <LuUser size={22} />
+                  )}
+                </div>
+                <div className="user-profile-info">
+                  <strong>{user.displayName || 'Koder'}</strong>
+                  <small>{user.email}</small>
+                </div>
+              </div>
+            </div>
+          )}
+        </aside>
+      )}
+
+      {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="duo-mobile-bottom-nav">
-        <button
-          className={`m-nav-item ${activeNav === 'belajar' ? 'active' : ''}`}
-          onClick={() => { setActiveNav('belajar'); playSoundCue('click') }}
-        >
-          <LuHouse size={22} />
-          <span>Belajar</span>
+        <button className={`m-nav-item ${activeNav === 'belajar' ? 'active' : ''}`} onClick={() => { setActiveNav('belajar'); playSoundCue('click') }}>
+          <LuHouse size={22} /><span>Belajar</span>
         </button>
-
-        <button
-          className={`m-nav-item ${activeNav === 'visualizer' ? 'active' : ''}`}
-          onClick={() => { setActiveNav('visualizer'); playSoundCue('click') }}
-        >
-          <LuHeadphones size={22} />
-          <span>Visual</span>
+        <button className={`m-nav-item ${activeNav === 'visualizer' ? 'active' : ''}`} onClick={() => { setActiveNav('visualizer'); playSoundCue('click') }}>
+          <LuHeadphones size={22} /><span>Visual</span>
         </button>
-
-        <button
-          className={`m-nav-item ${activeNav === 'latihan' ? 'active' : ''}`}
-          onClick={() => handleStartNode(1)}
-        >
-          <LuDumbbell size={22} />
-          <span>Latihan</span>
+        <button className={`m-nav-item ${activeNav === 'playground' ? 'active' : ''}`} onClick={() => { setActiveNav('playground'); playSoundCue('click') }}>
+          <LuTerminal size={22} /><span>Playground</span>
         </button>
-
-        <button
-          className={`m-nav-item ${activeNav === 'papan-skor' ? 'active' : ''}`}
-          onClick={() => { setActiveNav('papan-skor'); playSoundCue('click') }}
-        >
-          <LuShield size={22} />
-          <span>Skor</span>
+        <button className={`m-nav-item ${activeNav === 'papan-skor' ? 'active' : ''}`} onClick={() => { setActiveNav('papan-skor'); playSoundCue('click') }}>
+          <LuShield size={22} /><span>Skor</span>
         </button>
-
-        <button
-          className={`m-nav-item ${activeNav === 'misi' ? 'active' : ''}`}
-          onClick={() => { setActiveNav('misi'); playSoundCue('click') }}
-        >
-          <LuScroll size={22} />
-          <span>Misi</span>
-        </button>
-
-        <button
-          className={`m-nav-item ${activeNav === 'bahasa' ? 'active' : ''}`}
-          onClick={() => { setShowLangPicker(true); playSoundCue('click') }}
-        >
-          <LuStore size={22} />
-          <span>Bahasa</span>
+        <button className={`m-nav-item ${activeNav === 'misi' ? 'active' : ''}`} onClick={() => { setActiveNav('misi'); playSoundCue('click') }}>
+          <LuScroll size={22} /><span>Misi</span>
         </button>
       </nav>
 
-      {/* ===== MODAL 1: REAL STREAK CALENDAR POPUP ===== */}
+      {/* ===== MODAL: STREAK ===== */}
       <AnimatePresence>
         {showStreakModal && (
           <div className="duo-modal-backdrop" onClick={() => setShowStreakModal(false)}>
@@ -692,7 +808,7 @@ function DuolingoLearn() {
               <div className="picker-header">
                 <div className="streak-header-title">
                   <LuFlame size={28} className="icon-orange" />
-                  <h3>Streak Real: {streakData.streak} Hari!</h3>
+                  <h3>Streak: {streakData.streak} Hari!</h3>
                 </div>
                 <button className="modal-close" onClick={() => setShowStreakModal(false)}>
                   <LuX size={20} />
@@ -700,17 +816,12 @@ function DuolingoLearn() {
               </div>
               <p className="picker-subtitle">
                 {streakData.hasCompletedToday
-                  ? 'Keren! Kamu sudah menyelesaikan latihan hari ini. Streak kamu aman!'
-                  : 'Selesaikan 1 kuis atau simulasi hari ini untuk memperpanjang streak koding kamu!'}
+                  ? 'Keren! Latihan hari ini sudah selesai.'
+                  : 'Selesaikan 1 kuis hari ini untuk memperpanjang streak!'}
               </p>
-
-              {/* 7 Days of Current Week */}
               <div className="streak-week-grid">
                 {weekStatus.map((day) => (
-                  <div
-                    key={day.dateStr}
-                    className={`streak-day-cell ${day.isCompleted ? 'completed' : ''} ${day.isToday ? 'today' : ''}`}
-                  >
+                  <div key={day.dateStr} className={`streak-day-cell ${day.isCompleted ? 'completed' : ''} ${day.isToday ? 'today' : ''}`}>
                     <span className="streak-day-name">{day.dayName}</span>
                     <div className="streak-day-circle">
                       {day.isCompleted ? (
@@ -722,27 +833,15 @@ function DuolingoLearn() {
                   </div>
                 ))}
               </div>
-
               <div className="streak-summary-note">
                 <small>Terakhir aktif: <strong>{streakData.lastActiveDate}</strong></small>
               </div>
-
-              <button
-                className="btn-super-cta"
-                style={{ marginTop: '1.25rem' }}
-                onClick={() => {
-                  setShowStreakModal(false)
-                  handleStartNode(1)
-                }}
-              >
-                LATIHAN SEKARANG UNTUK TAMBAH STREAK
-              </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* ===== MODAL 2: LANGUAGE PICKER ===== */}
+      {/* ===== MODAL: LANGUAGE PICKER ===== */}
       <AnimatePresence>
         {showLangPicker && (
           <div className="duo-modal-backdrop" onClick={() => setShowLangPicker(false)}>
@@ -759,19 +858,13 @@ function DuolingoLearn() {
                   <LuX size={20} />
                 </button>
               </div>
-              <p className="picker-subtitle">
-                Ganti kursus aktif ke bahasa mana saja -- dari Low-Level hingga Tersulit!
-              </p>
+              <p className="picker-subtitle">Ganti kursus aktif -- dari Low-Level hingga Tersulit!</p>
               <div className="picker-grid">
                 {programmingLanguages.map((lang) => (
                   <button
                     key={lang.id}
                     className={`picker-lang-item ${selectedLangId === lang.id ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedLangId(lang.id)
-                      setShowLangPicker(false)
-                      playSoundCue('success')
-                    }}
+                    onClick={() => handleSwitchLang(lang.id)}
                   >
                     <span className="picker-dot" style={{ background: lang.color }} />
                     <div className="picker-lang-info">
@@ -787,34 +880,41 @@ function DuolingoLearn() {
         )}
       </AnimatePresence>
 
-      {/* ===== MODAL 3: BUKU PANDUAN ALA KERTAS / SHEET DENGAN HALAMAN ===== */}
+      {/* ===== MODAL: BUKU PANDUAN ===== */}
       <AnimatePresence>
         {showTheoryGuide && (
-          <TheoryGuidebook
-            lang={currentLang}
-            onClose={() => setShowTheoryGuide(false)}
-          />
+          <TheoryGuidebook lang={currentLang} onClose={() => setShowTheoryGuide(false)} />
         )}
       </AnimatePresence>
 
-      {/* ===== MODAL 4: FULLSCREEN INTERACTIVE LESSON PACK (Word Bank & Mascot Loading) ===== */}
+      {/* ===== MODAL: INTERACTIVE LESSON PACK ===== */}
       <AnimatePresence>
         {activeQuizNode && (
           <InteractiveLessonPack
             unitId={activeQuizNode}
             langName={currentLang.name}
             onClose={() => setActiveQuizNode(null)}
-            onComplete={() => {
-              const updated = recordDailyActivity()
-              setStreakData(updated)
-              setXp((prev) => prev + 30)
-              setGems((prev) => prev + 10)
+            onComplete={async () => {
+              const modXP = activeModuleData?.module?.xpReward || 30
+              await handleCompleteModule(modXP)
+              // Mark module as completed in Firestore
+              if (user && activeModuleData?.module?.id) {
+                const newCompleted = [...(userData?.completedModules || []), activeModuleData.module.id]
+                await updateUserData({ completedModules: newCompleted })
+              }
+              setActiveQuizNode(null)
             }}
           />
         )}
       </AnimatePresence>
     </div>
   )
+}
+
+function getModuleIcon(type) {
+  if (type === 'quiz') return <LuSearch size={16} />
+  if (type === 'simulator') return <LuHeadphones size={16} />
+  return <LuBookOpen size={16} />
 }
 
 export default DuolingoLearn

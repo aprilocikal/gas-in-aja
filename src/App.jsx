@@ -1,5 +1,5 @@
-import React from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
@@ -10,6 +10,8 @@ import Materi from './pages/Materi'
 import Tentang from './pages/Tentang'
 import Onboarding from './pages/Onboarding'
 import DuolingoLearn from './pages/DuolingoLearn'
+import AuthPage from './pages/AuthPage'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -33,15 +35,7 @@ class ErrorBoundary extends React.Component {
           <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>{this.state.error?.message || 'Error tidak diketahui'}</p>
           <button
             onClick={() => window.location.reload()}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: '#8b5cf6',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '9999px',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
+            style={{ padding: '0.75rem 1.5rem', background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: '9999px', cursor: 'pointer', fontWeight: 600 }}
           >
             Muat Ulang Halaman
           </button>
@@ -52,34 +46,56 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Guard: routes that require auth
+function RequireAuth({ children }) {
+  const { user } = useAuth()
+  // user=undefined means still loading; user=null means logged out
+  if (user === undefined) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a' }}>
+        <div style={{ width: 36, height: 36, border: '3px solid #6366f1', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      </div>
+    )
+  }
+  if (!user) return <Navigate to="/auth" replace />
+  return children
+}
+
 function AppContent() {
   const location = useLocation()
-  // Hide standard navbar/footer ONLY on Duolingo app page and Onboarding flow
   const isDuolingoApp = location.pathname === '/learn' || location.pathname === '/belajar'
   const isOnboarding = location.pathname === '/onboarding'
-  const hideStandardChrome = isDuolingoApp || isOnboarding
+  const isAuth = location.pathname === '/auth'
+  const hideStandardChrome = isDuolingoApp || isOnboarding || isAuth
 
   return (
     <div className="app">
-      {/* Scroll to absolute top immediately on every route change */}
       <ScrollToTop />
       {!hideStandardChrome && <Navbar />}
       <main>
         <Routes>
-          {/* Beranda (Home Landing page) */}
           <Route path="/" element={<Home />} />
-          {/* Alur Belajar (Interactive Flowchart Roadmap) */}
           <Route path="/alur-belajar" element={<AlurBelajar />} />
-          {/* Duolingo gamified interactive path */}
-          <Route path="/learn" element={<DuolingoLearn />} />
-          <Route path="/belajar" element={<DuolingoLearn />} />
-          {/* Onboarding friendly flow */}
+          <Route path="/auth" element={<AuthPage onAuthSuccess={() => window.location.replace('/learn')} />} />
+          <Route
+            path="/learn"
+            element={
+              <RequireAuth>
+                <DuolingoLearn />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/belajar"
+            element={
+              <RequireAuth>
+                <DuolingoLearn />
+              </RequireAuth>
+            }
+          />
           <Route path="/onboarding" element={<Onboarding />} />
-          {/* Standalone Visualizer & Simulations */}
           <Route path="/simulasi" element={<Simulasi />} />
-          {/* All 12 Programming Languages Catalog */}
           <Route path="/materi" element={<Materi />} />
-          {/* About Competition & Rules */}
           <Route path="/tentang" element={<Tentang />} />
         </Routes>
       </main>
@@ -91,7 +107,9 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ErrorBoundary>
   )
 }
