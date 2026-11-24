@@ -54,7 +54,7 @@ import './DuolingoLearn.css'
 
 function DuolingoLearn() {
   const navigate = useNavigate()
-  const { user, userData, logout, updateUserData } = useAuth()
+  const { user, userData, isGuest, logout, updateUserData } = useAuth()
 
   const [selectedLangId, setSelectedLangId] = useState(userData?.selectedLang || 'python')
   const [showLangPicker, setShowLangPicker] = useState(false)
@@ -79,7 +79,7 @@ function DuolingoLearn() {
   const [gems, setGems] = useState(userData?.gems ?? 0)
   const [hearts, setHearts] = useState(userData?.hearts ?? 5)
   const [xp, setXp] = useState(userData?.xp ?? 0)
-  const currentStreak = user ? (userData?.streak ?? 0) : streakData.streak
+  const currentStreak = user ? (userData?.streak ?? streakData.streak) : streakData.streak
 
   useEffect(() => {
     if (userData) {
@@ -792,11 +792,11 @@ function DuolingoLearn() {
             </div>
           </div>
 
-          {/* User profile card if logged in */}
+          {/* User profile card if logged in or guest */}
           {user && (
             <div className="right-card user-profile-card">
               <div className="card-top-row">
-                <h4>Akun</h4>
+                <h4>{isGuest ? 'Mode Tamu' : 'Akun'}</h4>
                 <button
                   className="btn-avatar-shuffle"
                   onClick={handleRandomizeAvatar}
@@ -811,14 +811,21 @@ function DuolingoLearn() {
                   <RandomCyberAvatar variant={avatarVariant} />
                 </div>
                 <div className="user-profile-info">
-                  <strong>{user.displayName || 'Koder'}</strong>
-                  <small>{user.email}</small>
+                  <strong>{user.displayName || (isGuest ? 'Mode Tamu' : 'Koder')}</strong>
+                  <small>{isGuest ? 'Progres disimpan lokal' : user.email}</small>
                 </div>
               </div>
-              <button className="btn-logout-account" onClick={handleLogout}>
-                <LuLogOut size={15} />
-                <span>Keluar (Log Out)</span>
-              </button>
+              {isGuest ? (
+                <button className="btn-logout-account btn-login-switch" onClick={() => navigate('/auth')}>
+                  <LuLogOut size={15} />
+                  <span>Daftar / Masuk Akun</span>
+                </button>
+              ) : (
+                <button className="btn-logout-account" onClick={handleLogout}>
+                  <LuLogOut size={15} />
+                  <span>Keluar (Log Out)</span>
+                </button>
+              )}
             </div>
           )}
         </aside>

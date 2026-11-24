@@ -2299,3 +2299,15 @@
   background: rgba(239, 68, 68, 0.22);
   color: #ffffff;
 }
+
+
+.btn-login-switch {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  color: #c4b5fd !important;
+}
+
+.btn-login-switch:hover {
+  background: rgba(99, 102, 241, 0.28) !important;
+  color: #ffffff !important;
+}

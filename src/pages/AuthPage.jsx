@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   createUserWithEmailAndPassword,
@@ -8,11 +9,14 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, googleProvider } from '../firebase/firebaseConfig'
-import { LuCode, LuMail, LuLock, LuUser, LuEye, LuEyeOff, LuArrowRight, LuX } from 'react-icons/lu'
+import { useAuth } from '../contexts/AuthContext'
+import { LuCode, LuMail, LuLock, LuUser, LuEye, LuEyeOff, LuArrowRight, LuArrowLeft, LuSparkles, LuX } from 'react-icons/lu'
 import KinetixLogo from '../components/KinetixLogo'
 import './AuthPage.css'
 
 export default function AuthPage({ onAuthSuccess }) {
+  const navigate = useNavigate()
+  const { continueAsGuest } = useAuth()
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -88,6 +92,15 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
+  const handleGuestMode = () => {
+    continueAsGuest()
+    if (onAuthSuccess) {
+      onAuthSuccess({ uid: 'guest', isAnonymous: true, displayName: 'Tamu (Guest)' })
+    } else {
+      navigate('/learn')
+    }
+  }
+
   const friendlyError = (code) => {
     const map = {
       'auth/email-already-in-use': 'Email ini sudah terdaftar. Silakan login.',
@@ -106,6 +119,18 @@ export default function AuthPage({ onAuthSuccess }) {
     <div className="auth-root">
       {/* Background Grid */}
       <div className="auth-bg-grid" />
+
+      {/* Floating Back Button on Page Top */}
+      <div className="auth-page-topbar">
+        <button
+          type="button"
+          className="btn-auth-back-nav"
+          onClick={() => navigate('/')}
+        >
+          <LuArrowLeft size={18} />
+          <span>Kembali ke Beranda</span>
+        </button>
+      </div>
 
       <motion.div
         className="auth-card"
@@ -226,10 +251,25 @@ export default function AuthPage({ onAuthSuccess }) {
           <span>Lanjutkan dengan Google</span>
         </button>
 
+        {/* Divider for Guest Mode */}
+        <div className="auth-divider">
+          <span>atau langsung coba</span>
+        </div>
+
+        {/* Guest Mode Button */}
+        <button
+          type="button"
+          className="btn-guest-auth"
+          onClick={handleGuestMode}
+        >
+          <LuSparkles size={18} className="icon-guest-spark" />
+          <span>Masuk Mode Tamu (Guest Mode)</span>
+        </button>
+
         {/* Footer note */}
         <p className="auth-footer-note">
-          Dengan mendaftar, kamu setuju dengan ketentuan penggunaan platform.
-          Data tersimpan di Firebase secara aman.
+          Mode tamu memungkinkan langsung mencoba soal dan materi tanpa login.
+          Daftar akun untuk menyimpan progres permanen di cloud.
         </p>
       </motion.div>
     </div>
