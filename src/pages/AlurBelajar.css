@@ -1,0 +1,283 @@
+/* ===== Alur Belajar Flowchart Page ===== */
+.alur-page {
+  padding-top: 0;
+  background-color: var(--bg-black);
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+/* Hero Section with seamless background matching Home */
+.alur-hero {
+  background: var(--gradient-hero);
+  padding: 8.5rem 0 4.5rem;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.alur-hero-content {
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+.alur-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.alur-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.alur-hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Flowchart Section */
+.flowchart-section {
+  padding: 4rem 0 6rem;
+}
+
+.flowchart-layout-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.column-label {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  margin-bottom: 1.5rem;
+}
+
+.flowchart-nodes-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.flowchart-step-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.flowchart-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(22, 15, 38, 0.7);
+  border: 2px solid rgba(139, 92, 246, 0.15);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(12px);
+}
+
+.flowchart-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(22, 15, 38, 0.95);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.flowchart-card.active {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+  box-shadow: 0 12px 35px rgba(139, 92, 246, 0.35);
+}
+
+.flow-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flow-card-info {
+  flex: 1;
+}
+
+.flow-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.flow-phase-num {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #a78bfa;
+  letter-spacing: 0.05em;
+}
+
+.flow-phase-diff {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.flow-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.flow-card-lang {
+  font-size: 0.82rem;
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+.flow-card-arrow {
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.flowchart-card:hover .flow-card-arrow,
+.flowchart-card.active .flow-card-arrow {
+  color: #a78bfa;
+  transform: translateX(4px);
+}
+
+/* Connectors */
+.flowchart-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 40px;
+  position: relative;
+  margin: 4px 0;
+}
+
+.connector-line {
+  width: 3px;
+  height: 24px;
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.connector-arrow {
+  color: #8b5cf6;
+  margin-top: -6px;
+}
+
+/* Right Detail Card */
+.detail-sticky-card {
+  position: sticky;
+  top: 7rem;
+  padding: 2.25rem;
+  border-radius: 24px;
+}
+
+.detail-header {
+  margin-bottom: 1.25rem;
+}
+
+.detail-badge {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid;
+  margin-bottom: 0.75rem;
+}
+
+.detail-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+}
+
+.detail-languages {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.detail-desc {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #d1d5db;
+  margin-bottom: 1.5rem;
+}
+
+.detail-concepts-block h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  margin-bottom: 0.75rem;
+}
+
+.concepts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.concepts-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.detail-output-block {
+  padding: 1rem;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.detail-output-block strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #a78bfa;
+  margin-bottom: 4px;
+}
+
+.detail-output-block p {
+  font-size: 0.85rem;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+/* Responsiveness */
+@media (max-width: 900px) {
+  .flowchart-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .detail-sticky-card {
+    position: static;
+  }
+  .alur-title {
+    font-size: 2rem;
+  }
+}

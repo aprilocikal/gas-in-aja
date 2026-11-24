@@ -1,0 +1,423 @@
+/* ===== Duolingo + Gradient Gamified Path Roadmap ===== */
+.coding-path-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* Duolingo Top Header */
+.duo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border-card);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.duo-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.duo-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.icon-pink { color: var(--pink-500); }
+.icon-violet { color: var(--violet-400); }
+.icon-cyan { color: var(--cyan-400); }
+
+.duo-companion-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.companion-speech {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+/* Roadmap Flow */
+.path-roadmap {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.path-node-row {
+  display: flex;
+  width: 100%;
+}
+
+.path-node-row.node-left {
+  justify-content: flex-start;
+}
+
+.path-node-row.node-right {
+  justify-content: flex-end;
+}
+
+.path-node-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 520px;
+}
+
+.node-right .path-node-container {
+  flex-direction: row-reverse;
+}
+
+/* Node Button */
+.path-node-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all var(--transition-fast);
+}
+
+.node-completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.node-active {
+  background: linear-gradient(135deg, #f97316 0%, #8b5cf6 100%);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
+}
+
+.node-locked {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+  cursor: not-allowed;
+  border: 1px solid var(--border-subtle);
+}
+
+.node-badge-done,
+.node-badge-lock {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0f121d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #10b981;
+  color: #10b981;
+}
+
+.node-badge-lock {
+  border-color: var(--text-dim);
+  color: var(--text-dim);
+}
+
+.node-ring-pulse {
+  position: absolute;
+  inset: -8px;
+  border: 2px solid var(--orange-500);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Node Card */
+.path-node-card {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-card);
+  flex: 1;
+}
+
+.node-xp {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cyan-400);
+  background: rgba(6, 182, 212, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.path-node-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0.4rem 0 0.25rem;
+}
+
+.path-node-card p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.node-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Duolingo Quiz Modal */
+.duo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5, 7, 12, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.duo-modal-card {
+  width: 100%;
+  max-width: 620px;
+  background: #0d101a;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: var(--radius-2xl);
+  padding: 2rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(139, 92, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-top {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.modal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #06b6d4);
+  transition: width 0.3s ease;
+}
+
+.modal-hearts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--pink-500);
+}
+
+.quiz-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--orange-400);
+  background: rgba(249, 115, 22, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.quiz-q-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0.6rem 0 1.25rem;
+  line-height: 1.4;
+}
+
+.quiz-code-box {
+  background: #06070a;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: #38bdf8;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.quiz-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.quiz-opt-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quiz-opt-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.quiz-opt-btn.selected {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: var(--cyan-400);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+}
+
+.opt-key {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: var(--cyan-400);
+  flex-shrink: 0;
+}
+
+.opt-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.quiz-feedback-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  gap: 1rem;
+}
+
+.fb-correct {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+}
+
+.fb-wrong {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+}
+
+.fb-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fb-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fb-icon-circle.green {
+  background: #10b981;
+  color: #fff;
+}
+
+.fb-icon-circle.red {
+  background: #ef4444;
+  color: #fff;
+}
+
+.fb-left strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.fb-left p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.quiz-action-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quiz-complete-screen {
+  text-align: center;
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quiz-complete-screen h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.quiz-complete-screen p {
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 640px) {
+  .path-node-container {
+    flex-direction: column !important;
+    align-items: flex-start;
+  }
+}
