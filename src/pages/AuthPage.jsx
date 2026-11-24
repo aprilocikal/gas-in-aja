@@ -16,7 +16,7 @@ import './AuthPage.css'
 
 export default function AuthPage({ onAuthSuccess }) {
   const navigate = useNavigate()
-  const { continueAsGuest } = useAuth()
+  const { user, continueAsGuest } = useAuth()
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,26 +25,42 @@ export default function AuthPage({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleFirestoreUser = async (user) => {
-    const ref = doc(db, 'users', user.uid)
-    const snap = await getDoc(ref)
-    if (!snap.exists()) {
-      await setDoc(ref, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || displayName || 'Koder Baru',
-        photoURL: null,
-        xp: 0,
-        gems: 0,
-        hearts: 5,
-        streak: 0,
-        lastActiveDate: null,
-        selectedLang: 'python',
-        completedModules: [],
-        createdAt: serverTimestamp(),
-      })
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (user && !user.isAnonymous) {
+      if (onAuthSuccess) {
+        onAuthSuccess(user)
+      } else {
+        navigate('/learn', { replace: true })
+      }
     }
-    return snap.data() || {}
+  }, [user, navigate, onAuthSuccess])
+
+  const handleFirestoreUser = async (u) => {
+    try {
+      const ref = doc(db, 'users', u.uid)
+      const snap = await getDoc(ref)
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          uid: u.uid,
+          email: u.email,
+          displayName: u.displayName || displayName || 'Koder Baru',
+          photoURL: null,
+          xp: 0,
+          gems: 0,
+          hearts: 5,
+          streak: 0,
+          lastActiveDate: null,
+          selectedLang: 'python',
+          completedModules: [],
+          createdAt: serverTimestamp(),
+        })
+      }
+      return snap.data() || {}
+    } catch (err) {
+      console.warn('Firestore profile sync warning (non-fatal):', err)
+      return {}
+    }
   }
 
   const handleEmailRegister = async (e) => {
@@ -52,12 +68,18 @@ export default function AuthPage({ onAuthSuccess }) {
     setError('')
     setLoading(true)
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password)
-      await updateProfile(user, { displayName: displayName || 'Koder Baru' })
-      await handleFirestoreUser(user)
-      onAuthSuccess(user)
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
+      try {
+        await updateProfile(newUser, { displayName: displayName || 'Koder Baru' })
+      } catch (err) {
+        console.warn('Update profile warning:', err)
+      }
+      await handleFirestoreUser(newUser)
+      if (onAuthSuccess) onAuthSuccess(newUser)
+      else navigate('/learn', { replace: true })
     } catch (err) {
-      setError(friendlyError(err.code))
+      console.error('Register error:', err)
+      setError(friendlyError(err.code || err.message))
     } finally {
       setLoading(false)
     }
@@ -68,11 +90,13 @@ export default function AuthPage({ onAuthSuccess }) {
     setError('')
     setLoading(true)
     try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password)
-      await handleFirestoreUser(user)
-      onAuthSuccess(user)
+      const { user: loggedInUser } = await signInWithEmailAndPassword(auth, email, password)
+      await handleFirestoreUser(loggedInUser)
+      if (onAuthSuccess) onAuthSuccess(loggedInUser)
+      else navigate('/learn', { replace: true })
     } catch (err) {
-      setError(friendlyError(err.code))
+      console.error('Login error:', err)
+      setError(friendlyError(err.code || err.message))
     } finally {
       setLoading(false)
     }
@@ -84,9 +108,11 @@ export default function AuthPage({ onAuthSuccess }) {
     try {
       const result = await signInWithPopup(auth, googleProvider)
       await handleFirestoreUser(result.user)
-      onAuthSuccess(result.user)
+      if (onAuthSuccess) onAuthSuccess(result.user)
+      else navigate('/learn', { replace: true })
     } catch (err) {
-      setError(friendlyError(err.code))
+      console.error('Google login error:', err)
+      setError(friendlyError(err.code || err.message))
     } finally {
       setLoading(false)
     }
@@ -97,22 +123,24 @@ export default function AuthPage({ onAuthSuccess }) {
     if (onAuthSuccess) {
       onAuthSuccess({ uid: 'guest', isAnonymous: true, displayName: 'Tamu (Guest)' })
     } else {
-      navigate('/learn')
+      navigate('/learn', { replace: true })
     }
   }
 
   const friendlyError = (code) => {
     const map = {
-      'auth/email-already-in-use': 'Email ini sudah terdaftar. Silakan login.',
+      'auth/email-already-in-use': 'Email ini sudah terdaftar. Silakan pilih tab "Masuk".',
       'auth/invalid-email': 'Format email tidak valid.',
       'auth/weak-password': 'Password minimal 6 karakter.',
-      'auth/user-not-found': 'Akun tidak ditemukan. Daftar terlebih dahulu.',
-      'auth/wrong-password': 'Password salah. Coba lagi.',
-      'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.',
-      'auth/popup-closed-by-user': 'Login dibatalkan.',
-      'auth/invalid-credential': 'Email atau password salah.',
+      'auth/user-not-found': 'Akun belum terdaftar. Silakan klik tab "Daftar" di atas untuk membuat akun.',
+      'auth/wrong-password': 'Password salah. Coba periksa kembali atau gunakan Mode Tamu.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan gagal. Silakan tunggu sebentar.',
+      'auth/popup-closed-by-user': 'Jendela login Google ditutup sebelum selesai.',
+      'auth/popup-blocked': 'Popup diblokir oleh browser. Izinkan popup untuk login Google.',
+      'auth/unauthorized-domain': 'Domain kinetixcode.vercel.app belum dimasukkan ke Authorized Domains Firebase. Anda bisa gunakan "Mode Tamu" untuk langsung mulai.',
+      'auth/invalid-credential': 'Email atau password salah / belum terdaftar. Jika akun baru, klik tab "Daftar" di atas.',
     }
-    return map[code] || 'Terjadi kesalahan. Coba lagi.'
+    return map[code] || (code ? `Gagal login: ${code}. Anda bisa gunakan Mode Tamu.` : 'Terjadi kesalahan. Coba lagi.')
   }
 
   return (
