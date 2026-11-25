@@ -30,6 +30,8 @@ import {
   startFocusBgm,
   stopFocusBgm,
   setFocusBgmDucked,
+  getFocusBgmVolume,
+  setFocusBgmVolume,
 } from '../utils/focusBgm'
 import { consumeSessionPowerups } from '../utils/xpRewards'
 import './InteractiveLessonPack.css'
@@ -116,6 +118,7 @@ export default function InteractiveLessonPack({
   const [isFinished, setIsFinished] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [bgmEnabled, setBgmEnabled] = useState(() => isFocusBgmEnabled())
+  const [bgmVolume, setBgmVolume] = useState(() => getFocusBgmVolume())
 
   // Word bank & choice state
   const [selectedChips, setSelectedChips] = useState([])
@@ -157,6 +160,15 @@ export default function InteractiveLessonPack({
     setBgmEnabled(next)
     setFocusBgmEnabled(next)
     playSoundCue('toggle')
+  }
+
+  const handleChangeBgmVolume = (nextVol) => {
+    const applied = setFocusBgmVolume(nextVol)
+    setBgmVolume(applied)
+    if (!bgmEnabled) {
+      setBgmEnabled(true)
+      setFocusBgmEnabled(true)
+    }
   }
 
   // Persist hint state
@@ -670,16 +682,53 @@ export default function InteractiveLessonPack({
               <LuZap size={13} /> x{combo}
             </span>
           )}
-          <button
-            type="button"
-            className={`bgm-toggle-pill ${bgmEnabled ? 'is-on' : 'is-off'}`}
-            onClick={handleToggleBgm}
-            title={bgmEnabled ? 'Matikan musik pengantar' : 'Nyalakan musik pengantar'}
-            aria-label={bgmEnabled ? 'Matikan musik pengantar' : 'Nyalakan musik pengantar'}
-          >
-            {bgmEnabled ? <LuMusic size={14} /> : <LuVolumeX size={14} />}
-            <span>{bgmEnabled ? 'BGM' : 'Mute'}</span>
-          </button>
+          <div className={`bgm-control-group ${bgmEnabled ? 'is-on' : 'is-off'}`}>
+            <button
+              type="button"
+              className={`bgm-toggle-pill ${bgmEnabled ? 'is-on' : 'is-off'}`}
+              onClick={handleToggleBgm}
+              title={bgmEnabled ? 'Matikan musik pengantar' : 'Nyalakan musik pengantar'}
+              aria-label={bgmEnabled ? 'Matikan musik pengantar' : 'Nyalakan musik pengantar'}
+            >
+              {bgmEnabled ? <LuMusic size={14} /> : <LuVolumeX size={14} />}
+              <span>{bgmEnabled ? 'BGM' : 'Mute'}</span>
+            </button>
+            {bgmEnabled && (
+              <div className="bgm-vol-controls" aria-label="Atur volume musik">
+                <button
+                  type="button"
+                  className="bgm-vol-step"
+                  onClick={() => handleChangeBgmVolume(Math.max(0.1, bgmVolume - 0.15))}
+                  disabled={bgmVolume <= 0.1}
+                  title="Kecilkan volume musik"
+                  aria-label="Kecilkan volume musik"
+                >
+                  −
+                </button>
+                <input
+                  type="range"
+                  className="bgm-vol-slider"
+                  min={10}
+                  max={100}
+                  step={5}
+                  value={Math.round(bgmVolume * 100)}
+                  onChange={(e) => handleChangeBgmVolume(Number(e.target.value) / 100)}
+                  aria-label="Volume musik pengantar"
+                />
+                <span className="bgm-vol-pct">{Math.round(bgmVolume * 100)}%</span>
+                <button
+                  type="button"
+                  className="bgm-vol-step"
+                  onClick={() => handleChangeBgmVolume(Math.min(1, bgmVolume + 0.15))}
+                  disabled={bgmVolume >= 1}
+                  title="Besarkan volume musik"
+                  aria-label="Besarkan volume musik"
+                >
+                  +
+                </button>
+              </div>
+            )}
+          </div>
           <div className="hint-token-pill" title="Token Hint Tersisa">
             <LuLightbulb size={15} />
             <span>

@@ -187,32 +187,106 @@
   font-weight: 800;
 }
 
+.bgm-control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 9px;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.bgm-control-group.is-on {
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(129, 140, 248, 0.42);
+  padding-right: 4px;
+}
+
+.bgm-control-group.is-off {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .bgm-toggle-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 9px;
-  border-radius: 9px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
   font-size: 0.76rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  transition: color 0.16s ease, background 0.16s ease;
 }
 
 .bgm-toggle-pill.is-on {
-  background: rgba(99, 102, 241, 0.16);
-  border: 1px solid rgba(129, 140, 248, 0.42);
   color: #c7d2fe;
 }
 
 .bgm-toggle-pill.is-off {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #64748b;
 }
 
 .bgm-toggle-pill:hover {
-  border-color: rgba(165, 180, 252, 0.6);
+  color: #ffffff;
+}
+
+.bgm-vol-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 4px;
+  border-left: 1px solid rgba(129, 140, 248, 0.28);
+}
+
+.bgm-vol-step {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  background: rgba(15, 23, 42, 0.65);
+  color: #e0e7ff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.bgm-vol-step:hover:not(:disabled) {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.bgm-vol-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.bgm-vol-slider {
+  width: 58px;
+  height: 4px;
+  accent-color: #818cf8;
+  cursor: pointer;
+}
+
+.bgm-vol-pct {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #c7d2fe;
+  min-width: 29px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .bgm-vol-slider {
+    display: none;
+  }
 }
 
 .lesson-hearts-badge {

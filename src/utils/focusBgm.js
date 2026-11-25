@@ -2,6 +2,9 @@
 // Real multi-track beat: soft kick, warm snare, swung hi-hats, jazzy Rhodes chords, bass & catchy lead
 
 const BGM_STORAGE_KEY = 'kinetix_bgm_enabled'
+const BGM_VOLUME_KEY = 'kinetix_bgm_volume'
+const DEFAULT_BGM_VOLUME = 0.7
+const MAX_MASTER_GAIN = 0.45
 
 // 82 BPM => 16th note = 0.183s (with subtle lo-fi swing on off-beat 16ths)
 const SIXTEENTH_SEC = 60 / 82 / 4
@@ -31,9 +34,7 @@ const LOFI_BARS = [
   },
 ]
 
-const NORMAL_MASTER_GAIN = 0.17
-const DUCKED_MASTER_GAIN = 0.035
-
+let currentVolume = DEFAULT_BGM_VOLUME
 let bgmCtx = null
 let masterGain = null
 let musicBus = null
@@ -42,6 +43,41 @@ let loopTimer = null
 let stepIndex = 0
 let isPlaying = false
 let isDucked = false
+
+function computeTargetGain() {
+  const base = Math.max(0.02, Math.min(MAX_MASTER_GAIN, currentVolume * MAX_MASTER_GAIN))
+  return isDucked ? base * 0.2 : base
+}
+
+export function getFocusBgmVolume() {
+  if (typeof window === 'undefined') return DEFAULT_BGM_VOLUME
+  const raw = Number(localStorage.getItem(BGM_VOLUME_KEY))
+  if (Number.isFinite(raw) && raw >= 0.05 && raw <= 1) {
+    currentVolume = raw
+    return raw
+  }
+  currentVolume = DEFAULT_BGM_VOLUME
+  return DEFAULT_BGM_VOLUME
+}
+
+export function setFocusBgmVolume(vol) {
+  const clamped = Math.max(0.05, Math.min(1, Math.round(Number(vol) * 100) / 100))
+  currentVolume = clamped
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(BGM_VOLUME_KEY, String(clamped))
+    } catch {
+      // ignore storage errors
+    }
+  }
+  if (isPlaying && bgmCtx && masterGain) {
+    const now = bgmCtx.currentTime
+    masterGain.gain.cancelScheduledValues(now)
+    masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now)
+    masterGain.gain.linearRampToValueAtTime(computeTargetGain(), now + 0.12)
+  }
+  return clamped
+}
 
 export function isFocusBgmEnabled() {
   if (typeof window === 'undefined') return true
@@ -305,8 +341,9 @@ export function startFocusBgm() {
     loopTimer = setInterval(scheduleStep, SIXTEENTH_SEC * 1000)
   }
 
+  getFocusBgmVolume()
   const now = ctx.currentTime
-  const target = isDucked ? DUCKED_MASTER_GAIN : NORMAL_MASTER_GAIN
+  const target = computeTargetGain()
   masterGain.gain.cancelScheduledValues(now)
   masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now)
   masterGain.gain.linearRampToValueAtTime(target, now + 0.5)
@@ -316,7 +353,7 @@ export function setFocusBgmDucked(duck) {
   isDucked = Boolean(duck)
   if (!isPlaying || !bgmCtx || !masterGain) return
   const now = bgmCtx.currentTime
-  const target = isDucked ? DUCKED_MASTER_GAIN : NORMAL_MASTER_GAIN
+  const target = computeTargetGain()
   masterGain.gain.cancelScheduledValues(now)
   masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now)
   masterGain.gain.linearRampToValueAtTime(target, now + 0.2)
