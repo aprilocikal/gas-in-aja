@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Mail, GitBranch, Link2 } from 'lucide-react'
 import KinetixLogo from './KinetixLogo'
 import './Footer.css'
 
@@ -16,17 +15,6 @@ function Footer() {
               <p className="footer-desc">
                 Platform pembelajaran programming dan visualisasi algoritma interaktif 60 FPS dari tingkat dasar hingga sistem.
               </p>
-              <div className="footer-social">
-                <a href="#" className="social-link" aria-label="Github">
-                  <GitBranch size={18} />
-                </a>
-                <a href="#" className="social-link" aria-label="LinkedIn">
-                  <Link2 size={18} />
-                </a>
-                <a href="#" className="social-link" aria-label="Email">
-                  <Mail size={18} />
-                </a>
-              </div>
             </div>
 
             <div className="footer-col">

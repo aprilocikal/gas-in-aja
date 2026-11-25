@@ -11,7 +11,6 @@ import {
   LuLayers,
   LuZap,
   LuSearch,
-  LuBinary,
   LuGamepad2,
   LuTarget,
   LuChartColumn,
@@ -681,7 +680,7 @@ function AlgorithmVisualizer({ onSimulate } = {}) {
             className={`algo-tab-btn ${selectedAlgo === 'tape' ? 'active' : ''}`}
             onClick={() => { setSelectedAlgo('tape'); playSoundCue('click') }}
           >
-            <LuBinary size={15} /> Pita Turing Brainfuck
+            <LuTerminal size={15} /> Pita Turing Brainfuck
           </button>
           <button
             className={`algo-tab-btn algo-tab-game ${selectedAlgo === 'game_binary' ? 'active' : ''}`}
