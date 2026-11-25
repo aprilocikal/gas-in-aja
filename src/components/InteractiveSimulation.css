@@ -97,9 +97,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--gradient-primary);
+  background: var(--primary-solid, #4f46e5);
   cursor: pointer;
-  box-shadow: 0 0 12px var(--orange-glow-bright);
+  box-shadow: 0 0 12px var(--primary-glow-bright, rgba(79, 70, 229, 0.42));
   border: 2px solid #ffffff;
   transition: all var(--transition-fast);
 }

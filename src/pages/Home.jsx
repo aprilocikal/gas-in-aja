@@ -46,7 +46,7 @@ function Home() {
     },
     {
       icon: <LuSparkles size={28} className="icon-orange" />,
-      title: 'Gamifikasi Ala Duolingo',
+      title: 'Gamifikasi Belajar Interaktif',
       description: 'Raih XP points, pertahankan streak harian, dan taklukkan kuis interaktif tebak output program dengan umpan balik instan.',
     },
     {
@@ -82,10 +82,6 @@ function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="hero-tag-badge">
-              <span className="tag-pill">Edukasi Koding Interaktif</span>
-            </div>
-
             <h1 className="hero-title">
               Belajar Coding & Algoritma, <br />
               <span className="gradient-text">Secara Visual & Nyata.</span>
@@ -114,7 +110,7 @@ function Home() {
           >
             <div className="hero-avatar-card">
               <div className="avatar-graphic-wrap">
-                <CharacterAvatar size={240} emotion="happy" animated={true} />
+                <CharacterAvatar size={240} emotion="happy" animated={true} showTooltip={true} />
               </div>
               <div className="avatar-speech-tag">
                 <span>Hai! Aku siap memandu kamu belajar koding dan algoritma hari ini.</span>
@@ -128,7 +124,6 @@ function Home() {
       <section className="section features-section">
         <div className="container">
           <div className="section-header">
-            <span className="tag-pill">Fitur Unggulan</span>
             <h2>Mengapa Belajar di Kinetix Code?</h2>
           </div>
 
@@ -143,9 +138,6 @@ function Home() {
       {/* ===== LIVE ALGORITHM VISUALIZER SHOWCASE ON HOME ===== */}
       <section className="section home-visualizer-section">
         <div className="container">
-          <div className="section-badge-center">
-            <span className="tag-pill">Eksplorasi Langsung di Browser</span>
-          </div>
           <div className="section-header">
             <h2>Simulasi Visual Algoritma Real-Time</h2>
           </div>
@@ -160,7 +152,6 @@ function Home() {
       <section className="section language-tiers-section">
         <div className="container">
           <div className="section-header">
-            <span className="tag-pill">Flashcard Interaktif</span>
             <h2>Dari Level Bare Metal Hingga Tersulit</h2>
           </div>
 

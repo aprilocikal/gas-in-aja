@@ -10,7 +10,7 @@ import Simulasi from './pages/Simulasi'
 import Materi from './pages/Materi'
 import Tentang from './pages/Tentang'
 import Onboarding from './pages/Onboarding'
-import DuolingoLearn from './pages/DuolingoLearn'
+import LearnHub from './pages/LearnHub'
 import AuthPage from './pages/AuthPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
@@ -64,10 +64,10 @@ function RequireAuth({ children }) {
 
 function AppContent() {
   const location = useLocation()
-  const isDuolingoApp = location.pathname === '/learn' || location.pathname === '/belajar'
+  const isLearnApp = location.pathname === '/learn' || location.pathname === '/belajar'
   const isOnboarding = location.pathname === '/onboarding'
   const isAuth = location.pathname === '/auth'
-  const hideStandardChrome = isDuolingoApp || isOnboarding || isAuth
+  const hideStandardChrome = isLearnApp || isOnboarding || isAuth
 
   return (
     <div className="app">
@@ -82,7 +82,7 @@ function AppContent() {
             path="/learn"
             element={
               <RequireAuth>
-                <DuolingoLearn />
+                <LearnHub />
               </RequireAuth>
             }
           />
@@ -90,7 +90,7 @@ function AppContent() {
             path="/belajar"
             element={
               <RequireAuth>
-                <DuolingoLearn />
+                <LearnHub />
               </RequireAuth>
             }
           />

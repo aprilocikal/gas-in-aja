@@ -1,104 +1,100 @@
-# Kinetix Code: Platform Pembelajaran Programming & Visualisasi Algoritma Interaktif
+# Kinetix Code — Platform Pembelajaran Pemrograman, Video Interaktif & Visualisasi Algoritma 60 FPS
 
-> **Kompetisi Horizon 2026: Crack The Egg**  
-> **Cabang Lomba:** Website Development  
-> **Subtema 2:** *Membangun Platform Pembelajaran Digital Interaktif melalui Visualisasi dan Simulasi*  
-> **Fokus Utama:** *SDG 4 (Quality Education: Pendidikan Berkualitas, Inklusif, dan Merata)*  
+**Kinetix Code** adalah platform edukasi pemrograman dan ilmu komputer berbasis web yang dirancang khusus agar mahasiswa baru, pelajar, maupun pembelajar mandiri dapat memahami logika komputasi dari dasar hingga tingkat sistem secara **visual, interaktif, dan menyenangkan** — tanpa perlu menginstal *compiler* atau berpindah-pindah aplikasi.
 
-***
+Seluruh ekosistem belajar disatukan dalam satu ruang belajar terpadu: **Peta Checkpoint Gamifikasi**, **Video Belajar YouTube Terintegrasi**, **Visualizer Algoritma 60 FPS + Mini-Games**, **Code Playground Bergaya IDE**, hingga **3D Flip Flashcards** untuk 17 bahasa pemrograman.
 
-## Ringkasan Eksekutif
+---
 
-**Kinetix Code** adalah platform pembelajaran ilmu komputer dan pemrograman interaktif generasi baru yang menggabungkan:
-1. **Visualisasi Algoritma 60 FPS Real Time**: Animasi penukaran (swap) dan komparasi elemen pada Bubble Sort yang tersinkronisasi langsung dengan baris kode Python, C, dan JavaScript.
-2. **Simulator Manajemen Memori & Pointer C / Low Level**: Menyingkap cara kerja RAM fisik (Stack vs Heap) dan pointer dereferensi secara visual.
-3. **Spektrum Lengkap Bahasa Pemrograman**: Menyediakan modul mulai dari *Low Level Bare Metal* (Assembly x86_64, C, C++, Rust), *High Level Modern* (Python, JavaScript, TypeScript, Go, Java), hingga *Bahasa Tersulit & Esoterik* (Haskell, Brainfuck, Prolog, Malbolge).
-4. **Gamifikasi Pembelajaran Adaptif**: Roadmap berjenjang, Streak harian, akumulasi XP, nyawa (hearts), serta kuis tebak output kode interaktif.
-5. **Karakter Asisten Virtual & Alur Onboarding**: Ditemani karakter asisten virtual cerdas yang memandu penyesuaian kurikulum pribadi.
+## Mengapa Kinetix Code?
 
-***
+Banyak mahasiswa baru kesulitan di semester awal karena belajar pemrograman hanya lewat teks statis yang terasa abstrak. **Kinetix Code** menjembatani kesenjangan tersebut lewat empat pilar pengalaman belajar:
 
-## Kesesuaian Rubrik Penilaian HORIZON 2026
+1. **Belajar Visual & Kinestetik** — Melihat langsung cara algoritma bekerja (perbandingan, *swap*, pembelahan ruang *Binary Search*, alamat RAM pointer, hingga pita memori Mesin Turing) secara sinkron dengan baris kode.
+2. **Belajar dari Video Tanpa Distraksi** — Menonton video tutorial dasar terkurasi maupun mencari video YouTube apa saja langsung di dalam web tanpa harus meninggalkan sesi belajar.
+3. **Praktik Langsung di Browser** — Menulis dan mengeksekusi kode nyata langsung di browser lengkap dengan *auto-indent*, *auto-close* kurung, dan saran *snippet* tombol `Tab` ala IDE profesional.
+4. **Retensi Terukur dengan Gamifikasi** — Evaluasi objektif lewat *passing grade* 55%, sistem 3 nyawa, token *hint* strategis, 3D *flashcards*, misi harian, serta Papan Skor Top 10 *real-time*.
 
-Platform Kinetix Code dirancang secara presisi mengacu pada **Rubrik Penilaian Resmi Horizon 2026** guna mencapai predikat **Level 5: Sangat Unggul (Skor Maksimal 100%)**:
+---
 
-| Kriteria Penilaian | Bobot | Level Target | Implementasi Nyata pada Kinetix Code |
-|---|:---:|:---:|---|
-| **1. Kesesuaian Tema** | **30%** | **5: Sangat Unggul (30%)** | Implementasi penuh Subtema 2 (Visualisasi & Simulasi): Menghadirkan visualisasi algoritma sorting (Bubble Sort) 60 FPS tersinkronisasi baris kode, dan simulasi manipulasi pointer memori RAM fisik C & Assembly. |
-| **2. Tujuan & Dampak Positif** | **20%** | **5: Sangat Unggul (20%)** | Menghilangkan stigma bahwa koding dan algoritma itu rumit dan abstrak. Membantu siswa dan mahasiswa memahami logika program dan Big O melalui pendekatan gamifikasi interaktif. |
-| **3. Fungsi & Konten Website** | **20%** | **5: Sangat Unggul (20%)** | Seluruh fungsi utama berjalan mulus: Visualizer Bubble Sort (Auto play & Step by Step), Simulator Pointer Memory, Katalog 12+ Bahasa Pemrograman, Roadmap Kuis Gamifikasi (+XP & Streaks), dan Log Benchmark CSV. |
-| **4. Desain & Aksesibilitas** | **15%** | **5: Sangat Unggul (15%)** | Desain Glassmorphism modern beraksen neon energik (Cyan, Violet, Emerald, Orange), responsive di desktop, tablet, dan smartphone, serta dilengkapi **Toolbar Aksesibilitas WCAG 2.1 AA** (atur ukuran teks, kontras tinggi, reduksi gerak, audio cues). |
-| **5. Kualitas Teknis & Pengujian** | **15%** | **5: Sangat Unggul (15%)** | Arsitektur modern React 19 + Vite, zero build error, penanganan React ErrorBoundary anti blank screen, lolos audit performa Lighthouse 95 hingga 100, dan teruji lintas browser & device. |
+## Fitur Unggulan
 
-***
+### 1. Katalog 17 Bahasa Pemrograman & 3D Flip Flashcards (`/materi`)
+Mencakup spektrum lengkap bahasa pemrograman dari kebutuhan kuliah semester awal hingga eksplorasi tingkat mesin:
+- **Wajib Mahasiswa Baru Kuliah:** HTML & CSS, SQL (MySQL / PostgreSQL), PHP, C# (.NET & Unity), Kotlin.
+- **High-Level & Modern:** Python, JavaScript / TypeScript, Go (Golang), Java.
+- **Low-Level & Sistem:** Assembly (x86-64), C Language, C++, Rust.
+- **Fungsional & Esoterik:** Haskell, Brainfuck, Prolog, Malbolge.
+- **Mode 3D Flip Flashcards & Study Deck:** Ketuk kartu untuk membalik dan melihat ringkasan, alasan penting dipelajari, cuplikan kode *Hello World* siap salin, serta penanda status **Paham** yang tersimpan otomatis. Mendukung mode **Grid Flip** dan **Flashcard Deck** (navigasi keyboard `←`/`→` & `Spasi`).
 
-## Fitur Fitur Unggulan
+### 2. Section Video Belajar YouTube Terintegrasi (`/learn` → Tab *Video Belajar*)
+- **Pemutar YouTube Langsung di Dalam Web:** Seluruh video diputar secara *inline* dalam *player* responsif 16:9 (`youtube-nocookie`) lengkap dengan tombol *Sebelumnya/Berikutnya* dan pelacakan progres **Sudah Ditonton**.
+- **Kurasi Video Dasar Terverifikasi:** Berisi puluhan video pengantar & dasar pilihan (Bahasa Indonesia & Inggris) untuk seluruh 17 bahasa pemrograman dan dasar algoritma (Bubble Sort & Binary Search).
+- **Pencarian Langsung YouTube & Link Instan:** Ketik kata kunci apa saja (mis. `belajar laravel`, `belajar react dasar`, `lofi coding`) untuk mencari langsung ke YouTube dan menonton hasilnya di dalam web — atau cukup tempel tautan YouTube (`youtube.com/watch?v=...`, `youtu.be/...`, `shorts/...`) untuk langsung diputar.
 
-### 1. Visualizer Algoritma Bubble Sort 60 FPS Tersinkronisasi Kode
-* Mengamati diagram batang animasi real time dengan status warna:
-  * Biru Cyan: Status normal elemen.
-  * Kuning Neon: Dua elemen yang sedang dibandingkan.
-  * Merah Pink: Proses penukaran posisi (swap) yang disertai animasi getar.
-  * Hijau Emerald: Elemen yang telah terurut sempurna.
-* **Sinkronisasi Baris Kode**: Menyorot baris kode Python, C, atau JavaScript yang sedang aktif dieksekusi secara bersamaan.
-* Kontrol interaktif: Jalankan Otomatis, Langkah Maju (Step by Step), Reset, Acak Data, dan Pengatur Kecepatan.
+### 3. Visualizer Algoritma 60 FPS & Mini-Games (`/simulasi` & `/learn`)
+- **Algoritma Sorting & Searching:** Bubble Sort, Selection Sort, Insertion Sort, dan Binary Search dengan tinggi batang proporsional akurat, penandaan target ditemukan (**hijau `KETEMU`**), serta sinkronisasi penyorotan baris kode (Python, C, JavaScript).
+- **Dua Mode Diagram:** Beralih instan antara **Grafik Batang** dan **Blok Memori** agar tidak monoton.
+- **Simulator Tingkat Rendah:** Visualisasi **Pointer & Memori C** (`Stack` vs `Pointer` & dereferensi `*ptr`) serta **Pita Turing Brainfuck** 8-sel interaktif dengan tombol `+ Tambah` (hijau) & `- Kurang` (merah) serta tata letak grid 4×2 ramah layar ponsel.
+- **2 Mini-Game Algoritma Interaktif:** *Game: Tebak Binary* dan *Game: Sort Rush* untuk melatih intuisi algoritma secara seru.
 
-### 2. Simulator Memori & Pointer RAM (C & Assembly)
-* Visualisasi kotak Stack Memory (Alamat `0x7ffee4a10`) dan Pointer Box (Alamat `0x7ffee4a18`).
-* Laser pointer neon yang menunjuk alamat sasaran.
-* Interaksi pengubahan nilai langsung dan alokasi alamat memori dinamis (`malloc`).
+### 4. Code Playground Bergaya IDE In-Browser (`/learn` → Tab *Playground*)
+- **Eksekusi Nyata & Validasi Ketat Per Bahasa:** Mendukung JavaScript, Python, C, C++, Java, Go, Rust, dan Brainfuck. Editor memvalidasi sintaks sesuai bahasa yang dipilih (misalnya menolak sintaks Python di mode Bahasa C) dan menjalankan percabangan `if/elif/else` serta perulangan secara akurat.
+- **Kenyamanan Mengetik ala IDE:**
+  - **Tab Autocomplete Snippet:** Ketik `if`, `ifelse`, `for`, `while`, `def`, `printf`, `cout`, `sout`, `bubble`, atau `binary` lalu tekan **`Tab`** untuk melengkapi blok kode otomatis.
+  - **Smart Auto-Indent & Auto-Close:** Otomatis menambah indentasi saat menekan `Enter` setelah `:` atau `{`, memekarkan blok `{|}`, `Shift + Tab` untuk *unindent*, serta penutupan otomatis `()`, `[]`, `{}`, `""`, `''`.
 
-### 3. Peta Petualangan Belajar Koding
-* Roadmap node bertingkat: dari Unit 1 (Fondasi & Variabel) hingga Unit 5 (Tantangan Esoterik).
-* Status Gamifikasi: Streak harian, XP akumulasi, dan sisa nyawa praktikum.
-* Kuis interaktif dengan pilihan ganda, blok kode, dan umpan balik penjelasan ilmiah instan.
+### 5. Peta Checkpoint Gamifikasi, Evaluasi Ketat & Audio Fokus (`/learn`)
+- **Peta Belajar Interaktif & Bank Soal Per Topik:** Setiap unit berisi rangkaian *checkpoint* (materi, kuis, dan simulator) dengan bank soal acak bertema sesuai modul yang dipilih (susun sintaks *word bank*, tebak output, dan analisis logika).
+- **Passing Grade 55% & Sistem 3 Nyawa:** Peserta harus menyelesaikan kuis dengan akurasi minimal **55%** dan nyawa tersisa; jika 3 nyawa habis akan muncul layar *Nyawa Praktikum Habis* (`+0 XP`) untuk mengulang dengan soal acak baru.
+- **Sistem Hint Strategis (3/3):** Tiga token *hint* dapat dipakai bebas tanpa jeda; *cooldown* isi ulang otomatis (60 detik) hanya aktif setelah seluruh 3 token habis terpakai.
+- **Pengalaman Audio Menyeluruh (Web Audio API):**
+  - Efek suara antarmuka lembut (*soft attack* + *low-pass filter*) untuk interaksi tombol, *step* visualizer, jawaban benar, dan salah.
+  - Tombol **Audio** pada kuis membacakan teks soal secara jelas menggunakan *Web Speech Synthesis*.
+  - **Musik Pengantar Fokus (Ambient Lo-Fi BGM):** Backsound lembut yang otomatis menemani selama mengerjakan soal, mengecil otomatis (*auto-ducking*) saat soal dibacakan, dan dilengkapi tombol **BGM / Mute** di pojok atas.
+- **Papan Skor Real-Time (Top 10) & Misi Harian:** Peringkat 10 besar disusun otomatis berdasarkan XP aktual (terintegrasi Firebase Firestore) dan dilengkapi misi checkpoint harian.
 
-### 4. Katalog Bahasa Lengkap: Dari Low Level hingga Bahasa Tersulit
-* **Tier 1 (Low Level & Sistem)**: Assembly x86_64, C, C++, Rust.
-* **Tier 2 (High Level Modern)**: Python, JavaScript, TypeScript, Go, Java.
-* **Tier 3 (Tersulit & Esoterik)**: Haskell (Fungsional Murni), Brainfuck (8 Karakter), Prolog (Logika Deklaratif), Malbolge (Bahasa Paling Mustahil di Dunia).
+---
 
-### 5. Karakter Asisten Virtual & Onboarding Alur Belajar
-* Karakter vektor animasi ekspresif.
-* Alur onboarding bertahap untuk merekomendasikan bahasa dan materi yang tepat.
+## Arsitektur & Tech Stack
 
-***
-
-## Tech Stack
-
-| Layer | Teknologi | Peran & Justifikasi |
+| Layer | Teknologi | Peran |
 |---|---|---|
-| **Frontend Library** | **React 19** | Rendering komponen reaktif berperforma tinggi dan arsitektur modular |
-| **Build Tool** | **Vite** | Bundling kilat HMR di bawah 50ms untuk pengalaman development responsif |
-| **Routing** | **React Router DOM 7** | Client side routing SPA instan tanpa refresh halaman |
-| **Animasi** | **Framer Motion** | Animasi mikro, perpindahan posisi batang sorting (layout spring), dan transisi modal |
-| **Ikonografi** | **React Icons** | Vektor SVG konsisten, ringan, dan modern |
-| **Audio Sintetis** | **Web Audio API** | Efek audio klik, sukses, dan log data murni tanpa file aset eksternal |
-| **Styling** | **Custom CSS3 Glassmorphism** | Frosted glass cards, glowing neon borders, responsive multi breakpoint |
+| **Frontend Framework** | **React 19** | Antarmuka komponen reaktif, modular, dan responsif desktop & mobile |
+| **Build & Dev Server** | **Vite 8** | Bundling cepat, HMR, serta middleware lokal `/api/yt-search` |
+| **Serverless API** | **Vercel Serverless Functions** | Endpoint `/api/yt-search` untuk pencarian YouTube real-time di produksi |
+| **Routing** | **React Router DOM 7** | Navigasi SPA multi-halaman dengan *auth guard* |
+| **Animasi & Interaksi** | **Framer Motion** | Transisi halus, 3D *tilt* maskot interaktif, dan animasi algoritma |
+| **Database & Auth** | **Firebase Auth & Firestore** | Login akun, Mode Tamu, sinkronisasi XP, streak, dan papan skor |
+| **Audio & Aksesibilitas** | **Web Audio API & Speech Synthesis** | Efek suara halus, BGM lo-fi fokus, dan pembaca soal suara |
+| **Desain & Styling** | **Custom CSS3 (Dark Obsidian)** | Palet *matte dark* nyaman di mata, ergonomis untuk mouse laptop maupun *swipe* HP |
 
-***
+---
 
-## Panduan Menjalankan Proyek
+## Cara Menjalankan di Lokal
 
 ```bash
-# 1. Masuk ke direktori
-cd "gas in aja"
+# 1. Clone repositori
+git clone https://github.com/aprilocikal/gas-in-aja.git
+cd gas-in-aja
 
 # 2. Pasang dependensi
 npm install
 
-# 3. Jalankan development server
+# 3. Jalankan server pengembangan (termasuk endpoint /api/yt-search)
 npm run dev
 ```
 
-Buka URL lokal yang muncul (default: `http://localhost:5173`) di browser.
+Buka alamat lokal yang tampil di terminal (misalnya `http://localhost:5173` atau `http://localhost:5174`).
 
-### Build Production
+### Build & Deploy Produksi
+
 ```bash
+# Build produksi
 npm run build
+
+# Pratinjau hasil build
+npm run preview
 ```
 
-***
-
-## Tim & Atribusi
-Karya ini dikembangkan secara orisinal khusus untuk kompetisi **Horizon 2026: Crack The Egg** subtema 2 (*Membangun Platform Pembelajaran Digital Interaktif melalui Visualisasi dan Simulasi*).
+Proyek ini sudah dikonfigurasi untuk **Vercel** melalui [vercel.json](vercel.json) (mendukung SPA routing sekaligus fungsi serverless `/api/yt-search`).

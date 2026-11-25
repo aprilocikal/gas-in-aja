@@ -2,6 +2,7 @@
 // High-fidelity, zero-latency procedural sound effects
 
 let audioCtx = null
+let unlockBound = false
 
 const getAudioContext = () => {
   if (typeof window === 'undefined') return null
@@ -12,9 +13,59 @@ const getAudioContext = () => {
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume()
+    audioCtx.resume().catch(() => {})
   }
   return audioCtx
+}
+
+const bindFirstGestureUnlock = () => {
+  if (typeof window === 'undefined' || unlockBound) return
+  unlockBound = true
+  const unlock = () => {
+    getAudioContext()
+    window.removeEventListener('pointerdown', unlock)
+    window.removeEventListener('keydown', unlock)
+  }
+  window.addEventListener('pointerdown', unlock, { passive: true, once: true })
+  window.addEventListener('keydown', unlock, { passive: true, once: true })
+}
+bindFirstGestureUnlock()
+
+// Shared soft output chain: master volume -> gentle low-pass (rounds off harsh highs)
+let masterChain = null
+let masterCtxRef = null
+const getMasterOut = (ctx) => {
+  if (masterChain && masterCtxRef === ctx) return masterChain
+  const master = ctx.createGain()
+  master.gain.value = 0.72
+  const lp = ctx.createBiquadFilter()
+  lp.type = 'lowpass'
+  lp.frequency.value = 4200
+  lp.Q.value = 0.6
+  master.connect(lp)
+  lp.connect(ctx.destination)
+  masterChain = master
+  masterCtxRef = ctx
+  return master
+}
+
+const scheduleTone = (ctx, { wave = 'sine', startFreq, endFreq, startTime, duration, peakGain = 0.14 }) => {
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = wave
+  osc.frequency.setValueAtTime(startFreq, startTime)
+  if (endFreq && endFreq !== startFreq) {
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), startTime + duration)
+  }
+  // Soft attack (no pop/click) then smooth exponential release
+  const attack = Math.min(0.014, duration * 0.3)
+  gain.gain.setValueAtTime(0.0001, startTime)
+  gain.gain.linearRampToValueAtTime(peakGain, startTime + attack)
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration)
+  osc.connect(gain)
+  gain.connect(getMasterOut(ctx))
+  osc.start(startTime)
+  osc.stop(startTime + duration + 0.02)
 }
 
 export function playSound(type = 'click') {
@@ -32,129 +83,101 @@ export function playSound(type = 'click') {
     switch (type) {
       // 1. Crisp tactile button tap
       case 'click': {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(680, now)
-        osc.frequency.exponentialRampToValueAtTime(320, now + 0.05)
-        gain.gain.setValueAtTime(0.12, now)
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(now)
-        osc.stop(now + 0.06)
+        scheduleTone(ctx, { wave: 'sine', startFreq: 680, endFreq: 340, startTime: now, duration: 0.055, peakGain: 0.12 })
         break
       }
 
-      // 2. Duolingo-style snap / pop for word bank & code chips
+      // 2. Instant zero-delay frame-0 mechanical pop for quiz choices
+      case 'select': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 720, endFreq: 460, startTime: now, duration: 0.045, peakGain: 0.14 })
+        scheduleTone(ctx, { wave: 'triangle', startFreq: 1400, endFreq: 900, startTime: now, duration: 0.025, peakGain: 0.08 })
+        break
+      }
+
+      // 3. Crisp snap / pop for word bank & code chips
       case 'chip': {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'triangle'
-        osc.frequency.setValueAtTime(520, now)
-        osc.frequency.exponentialRampToValueAtTime(1040, now + 0.08)
-        gain.gain.setValueAtTime(0.18, now)
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(now)
-        osc.stop(now + 0.09)
+        scheduleTone(ctx, { wave: 'triangle', startFreq: 540, endFreq: 1080, startTime: now, duration: 0.08, peakGain: 0.17 })
         break
       }
 
-      // 3. Tile return / unpop
+      // 4. Tile return / unpop
       case 'unpop': {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'triangle'
-        osc.frequency.setValueAtTime(880, now)
-        osc.frequency.exponentialRampToValueAtTime(440, now + 0.08)
-        gain.gain.setValueAtTime(0.14, now)
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(now)
-        osc.stop(now + 0.09)
+        scheduleTone(ctx, { wave: 'triangle', startFreq: 860, endFreq: 420, startTime: now, duration: 0.08, peakGain: 0.13 })
         break
       }
 
-      // 4. Correct answer triumphant Duolingo major chord (C5 - E5 - G5 - C6)
+      // 5. Correct answer bright "CENTRING!" crystal bell chime (C6 - E6 - G6 - C7 + shimmer bell)
       case 'success': {
-        const notes = [523.25, 659.25, 783.99, 1046.5] // C5, E5, G5, C6
+        const notes = [1046.5, 1318.51, 1567.98, 2093.0] // C6, E6, G6, C7
         notes.forEach((freq, idx) => {
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          const noteTime = now + idx * 0.07
-
-          osc.type = 'triangle'
-          osc.frequency.setValueAtTime(freq, noteTime)
-
-          gain.gain.setValueAtTime(0.16, noteTime)
-          gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.35)
-
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start(noteTime)
-          osc.stop(noteTime + 0.35)
+          scheduleTone(ctx, {
+            wave: 'sine',
+            startFreq: freq,
+            startTime: now + idx * 0.055,
+            duration: idx === notes.length - 1 ? 0.36 : 0.2,
+            peakGain: 0.18,
+          })
+        })
+        // High crystalline bell overtone for unmistakable "centring!" sparkle
+        scheduleTone(ctx, {
+          wave: 'sine',
+          startFreq: 3135.96,
+          startTime: now + 0.165,
+          duration: 0.42,
+          peakGain: 0.11,
         })
         break
       }
 
-      // 5. Wrong answer gentle two-tone "uh-oh"
+      // 6. Wrong answer clear two-tone "tet-tot" buzzer (smooth triangle, never harsh sawtooth)
       case 'wrong': {
-        const freqs = [330, 246.94] // E4 -> B3
-        freqs.forEach((freq, idx) => {
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          const noteTime = now + idx * 0.12
+        scheduleTone(ctx, { wave: 'triangle', startFreq: 310, endFreq: 270, startTime: now, duration: 0.11, peakGain: 0.18 })
+        scheduleTone(ctx, { wave: 'triangle', startFreq: 215, endFreq: 175, startTime: now + 0.11, duration: 0.22, peakGain: 0.18 })
+        scheduleTone(ctx, { wave: 'sine', startFreq: 155, endFreq: 108, startTime: now + 0.11, duration: 0.22, peakGain: 0.12 })
+        break
+      }
 
-          osc.type = 'sawtooth'
-          osc.frequency.setValueAtTime(freq, noteTime)
-
-          gain.gain.setValueAtTime(0.12, noteTime)
-          gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.18)
-
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start(noteTime)
-          osc.stop(noteTime + 0.18)
+      // 7. Magical crystal ping for Hint activation
+      case 'hint': {
+        ;[880, 1318.51, 1760].forEach((freq, idx) => {
+          scheduleTone(ctx, { wave: 'sine', startFreq: freq, startTime: now + idx * 0.06, duration: 0.24, peakGain: 0.14 })
         })
         break
       }
 
-      // 6. Algorithm Visualizer Bar Swap frequency sweep
+      // 8. Muffled thud when hint is on cooldown or out of tokens
+      case 'locked': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 190, endFreq: 115, startTime: now, duration: 0.075, peakGain: 0.15 })
+        break
+      }
+
+      // 9. Playful rising chirp when tapping the 3D Avatar
+      case 'avatar': {
+        ;[440, 680, 940].forEach((freq, idx) => {
+          scheduleTone(ctx, { wave: 'sine', startFreq: freq, startTime: now + idx * 0.045, duration: 0.12, peakGain: 0.13 })
+        })
+        break
+      }
+
+      // 10. Soft tick for telemetry / pointer log updates
+      case 'log': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 540, endFreq: 660, startTime: now, duration: 0.06, peakGain: 0.1 })
+        break
+      }
+
+      // 11. Algorithm Visualizer Bar Swap frequency sweep
       case 'swap': {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(400, now)
-        osc.frequency.exponentialRampToValueAtTime(800, now + 0.08)
-        gain.gain.setValueAtTime(0.1, now)
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(now)
-        osc.stop(now + 0.1)
+        scheduleTone(ctx, { wave: 'sine', startFreq: 420, endFreq: 640, startTime: now, duration: 0.09, peakGain: 0.07 })
         break
       }
 
-      // 7. Flashcard / Book page flip whoosh
+      // 12. Flashcard / Book page flip whoosh
       case 'page': {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(300, now)
-        osc.frequency.exponentialRampToValueAtTime(150, now + 0.12)
-        gain.gain.setValueAtTime(0.08, now)
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(now)
-        osc.stop(now + 0.14)
+        scheduleTone(ctx, { wave: 'sine', startFreq: 300, endFreq: 150, startTime: now, duration: 0.12, peakGain: 0.08 })
         break
       }
 
-      // 8. Streak flame fire pulse
+      // 13. Streak flame fire pulse
       case 'flame': {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -165,39 +188,53 @@ export function playSound(type = 'click') {
         gain.gain.setValueAtTime(0.15, now)
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28)
         osc.connect(gain)
-        gain.connect(ctx.destination)
+        gain.connect(getMasterOut(ctx))
         osc.start(now)
         osc.stop(now + 0.28)
         break
       }
 
-      // 9. Celebration fanfare / level up
+      // 15. Very soft tick (visualizer comparisons, hover-level feedback)
+      case 'tick': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 880, endFreq: 760, startTime: now, duration: 0.05, peakGain: 0.05 })
+        break
+      }
+
+      // 16. Gentle two-note rising chime when a search target is found
+      case 'found': {
+        ;[784, 1174.66].forEach((freq, idx) => {
+          scheduleTone(ctx, { wave: 'sine', startFreq: freq, startTime: now + idx * 0.09, duration: 0.32, peakGain: 0.1 })
+        })
+        break
+      }
+
+      // 17. Soft tab / page navigation swish
+      case 'nav': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 520, endFreq: 640, startTime: now, duration: 0.07, peakGain: 0.07 })
+        break
+      }
+
+      // 18. Soft toggle (switch view mode, mark as watched)
+      case 'toggle': {
+        scheduleTone(ctx, { wave: 'sine', startFreq: 600, endFreq: 780, startTime: now, duration: 0.06, peakGain: 0.07 })
+        scheduleTone(ctx, { wave: 'sine', startFreq: 900, startTime: now + 0.04, duration: 0.07, peakGain: 0.04 })
+        break
+      }
+
+      // 14. Celebration fanfare / level up
       case 'fanfare': {
-        const notes = [440, 554.37, 659.25, 880] // A major chord
-        notes.forEach((freq, idx) => {
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          const noteTime = now + idx * 0.09
-
-          osc.type = 'triangle'
-          osc.frequency.setValueAtTime(freq, noteTime)
-          gain.gain.setValueAtTime(0.18, noteTime)
-          gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.45)
-
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start(noteTime)
-          osc.stop(noteTime + 0.45)
+        ;[523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+          scheduleTone(ctx, { wave: 'triangle', startFreq: freq, startTime: now + idx * 0.085, duration: 0.42, peakGain: 0.18 })
         })
         break
       }
 
       default: {
-        playSound('click')
+        scheduleTone(ctx, { wave: 'sine', startFreq: 680, endFreq: 340, startTime: now, duration: 0.055, peakGain: 0.12 })
       }
     }
-  } catch (err) {
-    // Graceful fallback if audio context blocked before user gesture
+  } catch {
+    // Graceful fallback if audio context is unavailable or blocked before gesture
   }
 }
 

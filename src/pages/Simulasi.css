@@ -138,7 +138,7 @@
 .tip-num {
   width: 30px;
   height: 30px;
-  background: var(--gradient-primary);
+  background: var(--primary-solid, #4f46e5);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -147,7 +147,7 @@
   font-size: 0.85rem;
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 0 10px var(--orange-glow);
+  box-shadow: 0 0 10px var(--primary-glow, rgba(79, 70, 229, 0.28));
 }
 
 .tip-card strong {

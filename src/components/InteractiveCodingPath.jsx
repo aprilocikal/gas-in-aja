@@ -17,10 +17,12 @@ import { playSoundCue } from './AccessibilityToolbar'
 import './InteractiveCodingPath.css'
 
 function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) {
-  // Duolingo Gamification Stats
+  // Gamification Stats
+  const MAX_HEARTS = 3
   const [xp, setXp] = useState(120)
   const [streak, setStreak] = useState(5)
-  const [hearts, setHearts] = useState(5)
+  const [hearts, setHearts] = useState(MAX_HEARTS)
+  const [outOfHearts, setOutOfHearts] = useState(false)
 
   // Quiz Modal State
   const [activeLesson, setActiveLesson] = useState(null)
@@ -29,7 +31,7 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
   const [feedback, setFeedback] = useState(null) // 'correct' | 'wrong' | null
   const [lessonComplete, setLessonComplete] = useState(false)
 
-  // Duolingo-style Curated Nodes
+  // Curated Checkpoint Nodes
   const curriculumNodes = [
     {
       id: 1,
@@ -45,6 +47,20 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
           options: ['int (Integer)', 'float (Floating Point)', 'str (String)', 'bool (Boolean)'],
           answer: 1,
           explanation: 'Angka dengan desimal (titik) di Python dikenali secara dinamis sebagai tipe data float.',
+        },
+        {
+          question: 'Manakah deklarasi variabel string yang valid di Python?',
+          code: '# pilih yang valid',
+          options: ['nama = "Kinetix"', 'string nama = "Kinetix";', 'var nama := "Kinetix"', 'nama <- "Kinetix"'],
+          answer: 0,
+          explanation: 'Python tidak butuh tipe eksplisit: cukup nama = "Kinetix".',
+        },
+        {
+          question: 'Apa hasil dari 7 // 2 di Python?',
+          code: 'print(7 // 2)',
+          options: ['3', '3.5', '4', '2'],
+          answer: 0,
+          explanation: 'Operator // adalah floor division sehingga 7 // 2 = 3.',
         },
       ],
     },
@@ -62,6 +78,20 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
           options: ['3 kali', '4 kali (1, 2, 3, 4)', '5 kali (1, 2, 3, 4, 5)', 'Tak terhingga'],
           answer: 1,
           explanation: 'Fungsi range(1, 5) di Python berhenti sebelum batas akhir, sehingga mengembalikan nilai 1, 2, 3, dan 4 (tepat 4 kali).',
+        },
+        {
+          question: 'Kata kunci apa yang menghentikan sebuah loop lebih awal?',
+          code: 'for i in range(10):\n    if i == 3:\n        # hentikan loop di sini',
+          options: ['break', 'stop', 'exit_loop', 'return_loop'],
+          answer: 0,
+          explanation: 'break langsung keluar dari loop terdekat.',
+        },
+        {
+          question: 'Apa output dari kode berikut?',
+          code: 'x = 5\nif x > 3:\n    print("A")\nelse:\n    print("B")',
+          options: ['A', 'B', 'A lalu B', 'Error'],
+          answer: 0,
+          explanation: 'x > 3 bernilai True sehingga hanya blok if yang dijalankan.',
         },
       ],
     },
@@ -101,6 +131,15 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
       icon: <LuFlame size={22} />,
       status: 'locked',
       xpReward: 35,
+      questions: [
+        {
+          question: 'Operator apa yang mengambil alamat memori sebuah variabel di C?',
+          code: 'int x = 5;\nint *p = ???;',
+          options: ['&x', '*x', '@x', 'addr(x)'],
+          answer: 0,
+          explanation: 'Operator & mengambil alamat variabel, sedangkan * mendereferensi pointer.',
+        },
+      ],
     },
     {
       id: 5,
@@ -109,22 +148,42 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
       icon: <LuTrophy size={22} />,
       status: 'locked',
       xpReward: 50,
+      questions: [
+        {
+          question: 'Perintah Brainfuck apa yang menambah nilai sel saat ini?',
+          code: '+++',
+          options: ['+', '>', '.', '['],
+          answer: 0,
+          explanation: 'Tanda + menambah nilai byte pada sel yang sedang ditunjuk pointer.',
+        },
+      ],
     },
   ]
 
   const handleStartLesson = (node) => {
-    if (node.status === 'locked') return
+    if (node.status === 'locked' || !node.questions?.length) return
     setActiveLesson(node)
     setCurrentQIndex(0)
     setSelectedOption(null)
     setFeedback(null)
     setLessonComplete(false)
+    setOutOfHearts(hearts <= 0)
     playSoundCue('click')
   }
 
+  const handleRefillHearts = () => {
+    setHearts(MAX_HEARTS)
+    setOutOfHearts(false)
+    setCurrentQIndex(0)
+    setSelectedOption(null)
+    setFeedback(null)
+    setLessonComplete(false)
+    playSoundCue('success')
+  }
+
   const handleCheckAnswer = () => {
-    if (selectedOption === null) return
-    const currentQ = activeLesson.questions[currentQIndex]
+    const currentQ = activeLesson?.questions?.[currentQIndex]
+    if (selectedOption === null || !currentQ || feedback) return
     const isCorrect = selectedOption === currentQ.answer
 
     if (isCorrect) {
@@ -133,12 +192,17 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
       setXp((prev) => prev + 15)
     } else {
       setFeedback('wrong')
-      playSoundCue('click')
+      playSoundCue('wrong')
       setHearts((prev) => Math.max(0, prev - 1))
     }
   }
 
   const handleNextQuestion = () => {
+    if (hearts <= 0) {
+      setOutOfHearts(true)
+      playSoundCue('wrong')
+      return
+    }
     if (currentQIndex < activeLesson.questions.length - 1) {
       setCurrentQIndex((prev) => prev + 1)
       setSelectedOption(null)
@@ -151,7 +215,7 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
 
   return (
     <div className="coding-path-wrapper">
-      {/* Duolingo Top Header Bar */}
+      {/* Gamification Top Header Bar */}
       <div className="duo-header glass-card">
         <div className="duo-stats">
           <div className="duo-stat-item" title="Streak Belajar Berturut-turut">
@@ -241,7 +305,7 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
         })}
       </div>
 
-      {/* Duolingo Quiz Modal */}
+      {/* Interactive Quiz Modal */}
       <AnimatePresence>
         {activeLesson && (
           <div className="duo-modal-overlay">
@@ -275,7 +339,16 @@ function InteractiveCodingPath({ activeLanguage = 'python', onOpenVisualizer }) 
                 </div>
               </div>
 
-              {!lessonComplete ? (
+              {outOfHearts ? (
+                <div className="quiz-out-of-hearts">
+                  <CharacterAvatar size={140} emotion="oops" animated={true} />
+                  <h2>Nyawa Habis!</h2>
+                  <p>Ketiga nyawamu terpakai. Pulihkan nyawa lalu ulangi unit ini dari awal.</p>
+                  <button className="btn btn-primary btn-lg" onClick={handleRefillHearts}>
+                    Pulihkan {MAX_HEARTS} Nyawa & Ulangi Unit
+                  </button>
+                </div>
+              ) : !lessonComplete ? (
                 <div className="quiz-question-body">
                   <span className="quiz-tag">Tantangan Koding Interaktif</span>
                   <h3 className="quiz-q-title">

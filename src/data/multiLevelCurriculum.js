@@ -1011,11 +1011,19 @@ const defaultUnits = (langName, color) => ({
   ],
 })
 
+const FALLBACK_LANG_META = {
+  htmlcss: { name: 'HTML & CSS', color: '#f97316' },
+  sql: { name: 'SQL & Basis Data', color: '#0ea5e9' },
+  php: { name: 'PHP', color: '#818cf8' },
+  csharp: { name: 'C# (.NET & Unity)', color: '#22c55e' },
+  kotlin: { name: 'Kotlin', color: '#c084fc' },
+}
+
 export function getCurriculumForLang(langId) {
-  return (
-    multiLevelCurriculum[langId] ||
-    defaultUnits(langId.charAt(0).toUpperCase() + langId.slice(1), '#6366f1')
-  )
+  if (multiLevelCurriculum[langId]) return multiLevelCurriculum[langId]
+  const meta = FALLBACK_LANG_META[langId]
+  if (meta) return defaultUnits(meta.name, meta.color)
+  return defaultUnits(langId.charAt(0).toUpperCase() + langId.slice(1), '#6366f1')
 }
 
 export function computeUnitUnlockStatus(langId, earnedXP) {

@@ -123,7 +123,6 @@ export default function AlurBelajar() {
       <section className="alur-hero">
         <div className="container">
           <div className="alur-hero-content">
-            <span className="tag-pill">PETA JALAN PEMROGRAMAN KOMPREHENSIF</span>
             <h1 className="alur-title">
               Alur Belajar & Kurikulum Komputasi
             </h1>

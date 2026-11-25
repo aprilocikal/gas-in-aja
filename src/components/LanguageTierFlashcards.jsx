@@ -165,7 +165,7 @@ if arr[j] > arr[j + 1]:
                     </button>
                   </div>
 
-                  <div className="code-snippet-box">
+                  <div className="code-snippet-box" onClick={(e) => e.stopPropagation()}>
                     <pre><code>{card.backCode}</code></pre>
                   </div>
 

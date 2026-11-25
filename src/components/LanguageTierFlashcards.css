@@ -6,13 +6,13 @@
 
 .flashcards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.75rem;
 }
 
 @media (max-width: 960px) {
   .flashcards-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     max-width: 520px;
     margin: 0 auto;
   }
@@ -22,6 +22,7 @@
 .flashcard-scene {
   perspective: 1200px;
   min-height: 440px;
+  min-width: 0;
   cursor: pointer;
 }
 
@@ -43,6 +44,8 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   border-radius: 24px;
@@ -54,6 +57,20 @@
   backdrop-filter: blur(16px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.flashcard-scene:not(.is-flipped) .flashcard-back {
+  pointer-events: none;
+}
+
+.flashcard-scene.is-flipped .flashcard-front {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.flashcard-scene.is-flipped .flashcard-back {
+  pointer-events: auto;
+  z-index: 3;
 }
 
 .flashcard-scene:hover .flashcard-front {
@@ -177,6 +194,10 @@
 }
 
 .code-snippet-box {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
   background: #080510;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -185,17 +206,36 @@
   font-size: 0.78rem;
   color: #c4b5fd;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.45) transparent;
   margin-bottom: 1rem;
+}
+
+.code-snippet-box::-webkit-scrollbar {
+  height: 5px;
+}
+
+.code-snippet-box::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.45);
+  border-radius: 999px;
 }
 
 .code-snippet-box pre {
   margin: 0;
   background: none;
   padding: 0;
+  white-space: pre;
+  width: max-content;
+  min-width: 100%;
 }
 
 .code-snippet-box code {
   font-family: var(--font-mono);
+  white-space: pre;
 }
 
 .card-back-explanation {

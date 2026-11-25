@@ -1,5 +1,6 @@
 export const languageCategories = [
   { id: 'all', label: 'Semua Bahasa' },
+  { id: 'campus', label: 'Wajib Maba Kuliah' },
   { id: 'low', label: 'Low-Level & Sistem' },
   { id: 'high', label: 'High-Level & Modern' },
   { id: 'esoteric', label: 'Tersulit & Esoterik' },
@@ -203,6 +204,121 @@ func main() {
 }`,
     visualTopics: ['JVM Memory Heap vs Stack', 'Garbage Collector Cycle', 'Inheritance & Polymorphism'],
     sampleAlgorithm: 'Selection Sort & Linear Search',
+  },
+
+  // ===== TIER MABA: WAJIB MAHASISWA BARU KULIAH =====
+  {
+    id: 'htmlcss',
+    name: 'HTML & CSS',
+    tier: 'campus',
+    tierLabel: 'Wajib Maba • Web Dasar',
+    difficulty: 1,
+    difficultyLabel: 'Sangat Ramah Pemula',
+    color: '#f97316',
+    badge: 'Semester 1 Web',
+    paradigm: 'Markup & Styling Deklaratif',
+    description: 'Fondasi wajib mata kuliah Pemrograman Web Dasar. HTML menyusun struktur halaman (tag semantik), sedangkan CSS mengatur layout Flexbox, Grid, dan tampilan responsif.',
+    whyLearn: 'Gerbang paling cepat melihat hasil kode langsung di browser, sekaligus modal dasar untuk tugas web kampus & portofolio pribadi.',
+    iconName: 'LuGlobe',
+    helloWorld: `<!-- Struktur Dasar HTML5 & CSS -->
+<section class="card">
+  <h1>Halo Mahasiswa Baru!</h1>
+  <p>Siap membangun website pertamamu.</p>
+</section>
+
+<style>
+  .card { display: flex; flex-direction: column; gap: 8px; }
+</style>`,
+    visualTopics: ['Box Model & Padding', 'Flexbox & CSS Grid', 'HTML5 Semantic Tags'],
+    sampleAlgorithm: 'DOM Tree Layout Traversal',
+  },
+  {
+    id: 'sql',
+    name: 'SQL (MySQL / PostgreSQL)',
+    tier: 'campus',
+    tierLabel: 'Wajib Maba • Basis Data',
+    difficulty: 2,
+    difficultyLabel: 'Mudah Dipahami (Deklaratif)',
+    color: '#0ea5e9',
+    badge: 'Mata Kuliah Basis Data',
+    paradigm: 'Deklaratif Relasional (RDBMS)',
+    description: 'Bahasa standar untuk mengelola tabel database di mata kuliah Basis Data. Mulai dari SELECT, INSERT, UPDATE, DELETE hingga relasi JOIN antar tabel mahasiswa dan mata kuliah.',
+    whyLearn: 'Hampir semua aplikasi backend, skripsi, dan pekerjaan developer membutuhkan pemahaman query database relasional.',
+    iconName: 'LuLayers',
+    helloWorld: `-- Query Dasar Tabel Mahasiswa
+SELECT nama, jurusan, ipk
+FROM mahasiswa
+WHERE semester = 1 AND ipk >= 3.50
+ORDER BY ipk DESC;`,
+    visualTopics: ['SELECT & WHERE Filter', 'INNER vs LEFT JOIN', 'Primary & Foreign Key'],
+    sampleAlgorithm: 'B-Tree Index Lookup',
+  },
+  {
+    id: 'php',
+    name: 'PHP',
+    tier: 'campus',
+    tierLabel: 'Wajib Maba • Backend Web',
+    difficulty: 2,
+    difficultyLabel: 'Ramah Pemula Web',
+    color: '#818cf8',
+    badge: 'CRUD & Laravel Kampus',
+    paradigm: 'Server-Side Scripting & OOP',
+    description: 'Bahasa backend paling populer di praktikum kampus Indonesia untuk membuat web dinamis, login session, CRUD dengan MySQL, hingga framework modern seperti Laravel.',
+    whyLearn: 'Sangat cepat dipelajari untuk menyelesaikan proyek tugas akhir/kuliah web full-stack bersama MySQL.',
+    iconName: 'LuCode',
+    helloWorld: `<?php
+$nama = "Maba Informatika";
+$sks = 20;
+
+echo "Halo $nama! Total SKS semester ini: $sks";
+?>`,
+    visualTopics: ['Request GET vs POST', 'Koneksi PDO / MySQL', 'Session & Autentikasi'],
+    sampleAlgorithm: 'Form Validation & Array Filter',
+  },
+  {
+    id: 'csharp',
+    name: 'C# (.NET & Unity)',
+    tier: 'campus',
+    tierLabel: 'Wajib Maba • OOP & Game',
+    difficulty: 3,
+    difficultyLabel: 'Menengah (Terstruktur & OOP)',
+    color: '#22c55e',
+    badge: 'PBO & Game Unity',
+    paradigm: 'Object-Oriented Modern & Strongly Typed',
+    description: 'Bahasa modern buatan Microsoft yang sering dipakai di mata kuliah Pemrograman Berorientasi Objek (PBO), aplikasi desktop Windows, API .NET, hingga membuat game di Unity Engine.',
+    whyLearn: 'Sintaks rapi dan aman tipe datanya, sangat kuat untuk memahami konsep Class, Interface, LINQ, dan pengembangan game 2D/3D.',
+    iconName: 'LuCpu',
+    helloWorld: `using System;
+
+class Program {
+    static void Main() {
+        string kampus = "Informatika";
+        Console.WriteLine($"Halo dari C# {kampus}!");
+    }
+}`,
+    visualTopics: ['Class, Encapsulation & OOP', 'LINQ Collection Query', 'Unity MonoBehaviour Loop'],
+    sampleAlgorithm: 'LINQ Filter & Quick Sort',
+  },
+  {
+    id: 'kotlin',
+    name: 'Kotlin',
+    tier: 'campus',
+    tierLabel: 'Wajib Maba • Android Mobile',
+    difficulty: 3,
+    difficultyLabel: 'Menengah (Modern & Null-Safe)',
+    color: '#c084fc',
+    badge: 'Android Resmi Google',
+    paradigm: 'Multi-paradigma (OOP & Fungsional, Null-Safe)',
+    description: 'Bahasa resmi pengembangan aplikasi Android yang ringkas, modern, dan anti NullPointerException. Banyak digunakan pada mata kuliah Pemrograman Perangkat Bergerak (Mobile).',
+    whyLearn: 'Jauh lebih ringkas daripada Java tradisional, kompatibel penuh dengan ekosistem JVM, dan menjadi standar industri Android.',
+    iconName: 'LuZap',
+    helloWorld: `fun main() {
+    val nama = "Maba Android"
+    val nilai: Int? = 90
+    println("Halo $nama, nilai awal: \${nilai ?: 0}")
+}`,
+    visualTopics: ['Null Safety (? & ?.)', 'Data Class & Val/Var', 'Coroutines Async Flow'],
+    sampleAlgorithm: 'Null-Safe Collection Pipeline',
   },
 
   // ===== TIER 3: FUNCTIONAL & ESOTERIC / HARDEST =====

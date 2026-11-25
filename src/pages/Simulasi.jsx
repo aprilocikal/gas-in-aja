@@ -70,14 +70,6 @@ function Simulasi() {
       {/* Hero Section */}
       <section className="simulasi-hero">
         <div className="container">
-          <motion.div
-            className="hero-badge-center"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <span className="tag-pill">Laboratorium Visualisasi Algoritma 60 FPS</span>
-          </motion.div>
-
           <motion.h1
             className="section-title"
             initial={{ opacity: 0, y: 20 }}
@@ -105,11 +97,8 @@ function Simulasi() {
           {/* Algorithm Visualizer Core Component */}
           <AlgorithmVisualizer />
 
-          {/* Duolingo Gamified Coding Path Section */}
+          {/* Gamified Coding Path Section */}
           <div style={{ marginTop: '5rem' }}>
-            <div className="section-badge-center">
-              <span className="tag-pill">Alur Belajar Gamifikasi (Duolingo Style)</span>
-            </div>
             <h2 className="section-title">
               Peta Petualangan <span className="gradient-text">Koding Interaktif</span>
             </h2>
@@ -126,7 +115,7 @@ function Simulasi() {
             />
           </div>
 
-          {/* Benchmark & Experiment Data Logger (Rubrik Penilaian: Aplikatif) */}
+          {/* Benchmark & Experiment Data Logger */}
           <div className="lab-logger-section glass-card" style={{ marginTop: '5rem' }}>
             <div className="logger-header">
               <div className="logger-header-left">
@@ -135,7 +124,6 @@ function Simulasi() {
                 </div>
                 <div>
                   <div className="logger-badge-row">
-                    <span className="tag-pill">Log Analisis Komputasional</span>
                     <span className="log-count-badge">{benchmarkLogs.length} Titik Data</span>
                   </div>
                   <h3>Catatan Benchmark & Analisis Algoritma</h3>

@@ -105,20 +105,20 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 1.25rem;
-  background: var(--gradient-primary);
+  background: var(--primary-solid, #4f46e5);
   color: var(--white);
   border-radius: var(--radius-full);
   font-weight: 600;
   font-size: 0.875rem;
-  box-shadow: 0 4px 12px var(--orange-glow);
+  box-shadow: 0 4px 12px var(--primary-glow, rgba(79, 70, 229, 0.28));
   transition: all var(--transition-base);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .materi-btn:hover {
-  box-shadow: 0 6px 20px var(--orange-glow-bright);
+  background: var(--primary-hover, #4338ca);
+  box-shadow: 0 6px 18px var(--primary-glow-bright, rgba(79, 70, 229, 0.42));
   transform: translateY(-2px);
-  filter: brightness(1.1);
 }
 
 .materi-card-glow {

@@ -14,7 +14,6 @@
   body .tech-grid,
   body .competition-details,
   body .rubrik-grid,
-  body .languages-cards-grid,
   body .picker-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
@@ -30,8 +29,7 @@
   body .values-grid > :last-child:nth-child(odd),
   body .tech-grid > :last-child:nth-child(odd),
   body .competition-details > :last-child:nth-child(odd),
-  body .rubrik-grid > :last-child:nth-child(odd),
-  body .languages-cards-grid > :last-child:nth-child(odd) {
+  body .rubrik-grid > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
 
@@ -296,8 +294,7 @@
   body .features-grid,
   body .materi-grid,
   body .values-grid,
-  body .rubrik-grid,
-  body .languages-cards-grid {
+  body .rubrik-grid {
     grid-template-columns: 1fr;
   }
 }

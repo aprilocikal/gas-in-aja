@@ -1,4 +1,4 @@
-/* ===== Duolingo + Gradient Gamified Path Roadmap ===== */
+/* ===== Kinetix Gamified Path Roadmap ===== */
 .coding-path-wrapper {
   display: flex;
   flex-direction: column;
@@ -7,7 +7,7 @@
   margin: 0 auto;
 }
 
-/* Duolingo Top Header */
+/* Gamification Top Header */
 .duo-header {
   display: flex;
   align-items: center;
@@ -187,7 +187,7 @@
   flex-wrap: wrap;
 }
 
-/* Duolingo Quiz Modal */
+/* Interactive Quiz Modal */
 .duo-modal-overlay {
   position: fixed;
   inset: 0;
@@ -204,6 +204,10 @@
 .duo-modal-card {
   width: 100%;
   max-width: 620px;
+  min-width: 0;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: #0d101a;
   border: 1px solid rgba(139, 92, 246, 0.35);
   border-radius: var(--radius-2xl);
@@ -269,7 +273,15 @@
   line-height: 1.4;
 }
 
+.quiz-question-body {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .quiz-code-box {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: #06070a;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -279,6 +291,31 @@
   color: #38bdf8;
   margin-bottom: 1.5rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.45) transparent;
+}
+
+.quiz-code-box::-webkit-scrollbar {
+  height: 6px;
+}
+
+.quiz-code-box::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.45);
+  border-radius: 999px;
+}
+
+.quiz-code-box pre {
+  margin: 0;
+  white-space: pre;
+  width: max-content;
+  min-width: 100%;
+}
+
+.quiz-code-box code {
+  white-space: pre;
 }
 
 .quiz-options-list {
@@ -415,9 +452,34 @@
   margin-bottom: 1.75rem;
 }
 
+.quiz-out-of-hearts {
+  text-align: center;
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quiz-out-of-hearts h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 1.1rem 0 0.5rem;
+  color: #fb7185;
+}
+
+.quiz-out-of-hearts p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
 @media (max-width: 640px) {
   .path-node-container {
     flex-direction: column !important;
     align-items: flex-start;
+  }
+
+  .duo-modal-card {
+    padding: 1.35rem 1.15rem;
   }
 }

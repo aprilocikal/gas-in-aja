@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   LuPlay,
   LuPause,
@@ -12,13 +12,25 @@ import {
   LuZap,
   LuSearch,
   LuBinary,
+  LuGamepad2,
+  LuTarget,
+  LuChartColumn,
+  LuLayoutGrid,
 } from 'react-icons/lu'
 import { playSoundCue } from './AccessibilityToolbar'
+import { BinaryHuntGame, SortRushGame } from './VisualizerMiniGames'
 import './AlgorithmVisualizer.css'
 
-function AlgorithmVisualizer() {
-  const [selectedAlgo, setSelectedAlgo] = useState('bubblesort') // 'bubblesort' | 'selectionsort' | 'insertionsort' | 'binarysearch' | 'pointers' | 'tape'
+const formatTapeAscii = (val) => {
+  if (val === 0) return 'NUL'
+  if (val >= 32 && val <= 126) return `'${String.fromCharCode(val)}'`
+  return `0x${val.toString(16).toUpperCase().padStart(2, '0')}`
+}
+
+function AlgorithmVisualizer({ onSimulate } = {}) {
+  const [selectedAlgo, setSelectedAlgo] = useState('bubblesort') // 'bubblesort' | 'selectionsort' | 'insertionsort' | 'binarysearch' | 'pointers' | 'tape' | 'game_binary' | 'game_sort'
   const [selectedLang, setSelectedLang] = useState('python') // 'python' | 'c' | 'javascript'
+  const [diagramMode, setDiagramMode] = useState('bars') // 'bars' | 'blocks'
 
   // Array State for Sorting & Searching
   const defaultArray = [54, 26, 93, 17, 77, 31, 44, 55, 20]
@@ -406,6 +418,14 @@ function AlgorithmVisualizer() {
     playSoundCue('click')
   }
 
+  // Soft per-step audio feedback (swap sweep, compare tick, found chime)
+  const playStepSound = (step) => {
+    if (!step) return
+    if (step.pointers && step.sorted?.length) playSoundCue('found')
+    else if (step.swap?.length) playSoundCue('swap')
+    else if (step.compare?.length) playSoundCue('tick')
+  }
+
   // Apply step state
   const applyStep = (stepObj) => {
     if (!stepObj) return
@@ -438,10 +458,11 @@ function AlgorithmVisualizer() {
 
   // Next Step forward
   const handleStepForward = () => {
+    onSimulate?.()
     if (currentStepRef.current < stepsHistoryRef.current.length - 1) {
       currentStepRef.current += 1
       applyStep(stepsHistoryRef.current[currentStepRef.current])
-      playSoundCue('click')
+      playStepSound(stepsHistoryRef.current[currentStepRef.current])
     } else {
       setIsPlaying(false)
       playSoundCue('success')
@@ -461,6 +482,7 @@ function AlgorithmVisualizer() {
         if (currentStepRef.current < stepsHistoryRef.current.length - 1) {
           currentStepRef.current += 1
           applyStep(stepsHistoryRef.current[currentStepRef.current])
+          playStepSound(stepsHistoryRef.current[currentStepRef.current])
         } else {
           setIsPlaying(false)
           clearInterval(timerRef.current)
@@ -477,6 +499,7 @@ function AlgorithmVisualizer() {
   }, [isPlaying, speed])
 
   const togglePlay = () => {
+    if (!isPlaying) onSimulate?.()
     if (currentStepRef.current >= stepsHistoryRef.current.length - 1) {
       currentStepRef.current = 0
     }
@@ -614,9 +637,14 @@ function AlgorithmVisualizer() {
     codeSnippetsMap[selectedAlgo]?.[selectedLang] ||
     codeSnippetsMap.bubblesort[selectedLang]
 
+  const tapeOutputString = tape
+    .map((v) => (v >= 32 && v <= 126 ? String.fromCharCode(v) : ''))
+    .join('')
+  const speedMultiplier = `${(400 / speed).toFixed(1)}x`
+
   return (
     <div className="algo-visualizer glass-card">
-      {/* 1. TOP ALGORITHM SELECTOR TABS (Rich Choices!) */}
+      {/* 1. TOP ALGORITHM & MINI-GAME SELECTOR TABS (Balanced 4x2 Grid) */}
       <div className="algo-topbar">
         <div className="algo-tabs-rail">
           <button
@@ -655,6 +683,18 @@ function AlgorithmVisualizer() {
           >
             <LuBinary size={15} /> Pita Turing Brainfuck
           </button>
+          <button
+            className={`algo-tab-btn algo-tab-game ${selectedAlgo === 'game_binary' ? 'active' : ''}`}
+            onClick={() => { setSelectedAlgo('game_binary'); playSoundCue('click') }}
+          >
+            <LuTarget size={15} /> Game: Tebak Binary
+          </button>
+          <button
+            className={`algo-tab-btn algo-tab-game ${selectedAlgo === 'game_sort' ? 'active' : ''}`}
+            onClick={() => { setSelectedAlgo('game_sort'); playSoundCue('click') }}
+          >
+            <LuGamepad2 size={15} /> Game: Sort Rush
+          </button>
         </div>
 
         {/* Language Switcher for Code View */}
@@ -684,66 +724,174 @@ function AlgorithmVisualizer() {
           <div className="bars-section">
             <div className="bars-header">
               <div>
-                <span className="tag-pill-cyan">Animasi Eksekusi 60 FPS</span>
                 <h3 className="bars-title">
                   {selectedAlgo === 'binarysearch'
                     ? 'Visualisasi Pembelahan Ruang Pencarian'
                     : 'Status Array & Perpindahan Elemen'}
                 </h3>
               </div>
-              <div className="stats-badges">
-                <span className="stat-pill">
-                  Komparasi: <strong>{stats.comparisons}</strong>
-                </span>
-                {selectedAlgo !== 'binarysearch' && (
+              <div className="bars-header-tools">
+                <div className="view-mode-toggle" role="group" aria-label="Mode Diagram">
+                  <button
+                    type="button"
+                    className={`view-mode-btn ${diagramMode === 'bars' ? 'active' : ''}`}
+                    onClick={() => { setDiagramMode('bars'); playSoundCue('toggle') }}
+                  >
+                    <LuChartColumn size={13} /> Grafik Batang
+                  </button>
+                  <button
+                    type="button"
+                    className={`view-mode-btn ${diagramMode === 'blocks' ? 'active' : ''}`}
+                    onClick={() => { setDiagramMode('blocks'); playSoundCue('toggle') }}
+                  >
+                    <LuLayoutGrid size={13} /> Blok Memori
+                  </button>
+                </div>
+
+                <div className="stats-badges">
                   <span className="stat-pill">
-                    Swap: <strong>{stats.swaps}</strong>
+                    Komparasi: <strong>{stats.comparisons}</strong>
                   </span>
-                )}
-                {selectedAlgo === 'binarysearch' && (
-                  <span className="stat-pill">
-                    Target: <strong>{searchTarget}</strong>
-                  </span>
-                )}
+                  {selectedAlgo !== 'binarysearch' && (
+                    <span className="stat-pill">
+                      Swap: <strong>{stats.swaps}</strong>
+                    </span>
+                  )}
+                  {selectedAlgo === 'binarysearch' && (
+                    <span className="stat-pill">
+                      Target: <strong>{searchTarget}</strong>
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Bars Canvas Stage */}
-            <div className="bars-stage">
-              {array.map((val, idx) => {
-                const isComparing = compareIdx.includes(idx)
-                const isSwapping = swapIdx.includes(idx)
-                const isSorted = sortedIdx.includes(idx)
-                const isMid = selectedAlgo === 'binarysearch' && searchPointers.mid === idx
-                const isLow = selectedAlgo === 'binarysearch' && searchPointers.low === idx
-                const isHigh = selectedAlgo === 'binarysearch' && searchPointers.high === idx
+            {/* Diagram View A: Bars Canvas with Oscilloscope Guides */}
+            {diagramMode === 'bars' ? (
+              <div className="bars-stage">
+                <div className="stage-grid-lines" aria-hidden="true">
+                  <span className="grid-guide" style={{ bottom: '25%' }} />
+                  <span className="grid-guide" style={{ bottom: '50%' }} />
+                  <span className="grid-guide" style={{ bottom: '75%' }} />
+                </div>
+                {(() => {
+                  const maxBarVal = Math.max(...array, 1)
+                  return array.map((val, idx) => {
+                    const isComparing = compareIdx.includes(idx)
+                    const isSwapping = swapIdx.includes(idx)
+                    const isSorted = sortedIdx.includes(idx)
+                    const isMid = selectedAlgo === 'binarysearch' && searchPointers.mid === idx
+                    const isLow = selectedAlgo === 'binarysearch' && searchPointers.low === idx
+                    const isHigh = selectedAlgo === 'binarysearch' && searchPointers.high === idx
+                    const isFound = selectedAlgo === 'binarysearch' && isSorted
 
-                let barClass = 'bar-normal'
-                if (isComparing) barClass = 'bar-comparing'
-                if (isSwapping) barClass = 'bar-swapping'
-                if (isSorted) barClass = 'bar-sorted'
-                if (isMid) barClass = 'bar-swapping'
+                    let barClass = 'bar-normal'
+                    if (isComparing) barClass = 'bar-comparing'
+                    if (isSwapping) barClass = 'bar-swapping'
+                    if (isMid && !isSorted) barClass = 'bar-swapping'
+                    if (isSorted) barClass = 'bar-sorted'
 
-                return (
-                  <div key={idx} className="bar-wrapper">
-                    {/* Binary Search Pointer Badges */}
-                    {isMid && <span className="pointer-badge mid-badge">MID</span>}
-                    {isLow && !isMid && <span className="pointer-badge low-badge">LOW</span>}
-                    {isHigh && !isMid && <span className="pointer-badge high-badge">HIGH</span>}
+                    const heightPct = Math.max(10, Math.round((val / maxBarVal) * 100))
 
-                    <span className="bar-val">{val}</span>
+                    return (
+                      <div key={idx} className="bar-wrapper">
+                        {(isMid || isFound) && (
+                          <span className={`pointer-badge ${isFound ? 'found-badge' : 'mid-badge'}`}>
+                            {isFound ? 'KETEMU' : 'MID'}
+                          </span>
+                        )}
+                        {isLow && !isMid && !isFound && <span className="pointer-badge low-badge">LOW</span>}
+                        {isHigh && !isMid && !isFound && <span className="pointer-badge high-badge">HIGH</span>}
+                        {selectedAlgo !== 'binarysearch' && isSwapping && (
+                          <span className="bar-state-chip chip-swap">SWAP</span>
+                        )}
+                        {selectedAlgo !== 'binarysearch' && !isSwapping && isComparing && (
+                          <span className="bar-state-chip chip-cmp">CMP</span>
+                        )}
+
+                        <span className="bar-val">{val}</span>
+                        <div className="bar-track">
+                          <motion.div
+                            className={`bar-fill ${barClass}`}
+                            style={{ height: `${heightPct}%` }}
+                            layout
+                            transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+                          />
+                        </div>
+                        <span className="bar-idx">[{idx}]</span>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            ) : (
+              /* Diagram View B: Tactile Memory Node Blocks */
+              <div className="blocks-stage">
+                {array.map((val, idx) => {
+                  const isComparing = compareIdx.includes(idx)
+                  const isSwapping = swapIdx.includes(idx)
+                  const isSorted = sortedIdx.includes(idx)
+                  const isMid = selectedAlgo === 'binarysearch' && searchPointers.mid === idx
+                  const isLow = selectedAlgo === 'binarysearch' && searchPointers.low === idx
+                  const isHigh = selectedAlgo === 'binarysearch' && searchPointers.high === idx
+                  const isFound = selectedAlgo === 'binarysearch' && isSorted
+
+                  let blockState = 'normal'
+                  let stateText = 'IDLE'
+                  if (isComparing) {
+                    blockState = 'comparing'
+                    stateText = 'CMP'
+                  }
+                  if (isSwapping || (isMid && !isSorted)) {
+                    blockState = 'swapping'
+                    stateText = isMid ? 'MID' : 'SWAP'
+                  } else if (isLow && !isSorted) {
+                    stateText = 'LOW'
+                  } else if (isHigh && !isSorted) {
+                    stateText = 'HIGH'
+                  }
+                  if (isSorted) {
+                    blockState = 'sorted'
+                    stateText = isFound ? 'KETEMU' : 'OK'
+                  }
+
+                  return (
                     <motion.div
-                      className={`bar-fill ${barClass}`}
-                      style={{ height: `${Math.max(28, val * 2.3)}px` }}
+                      key={idx}
                       layout
-                      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                      className={`memory-node-block state-${blockState}`}
+                      transition={{ type: 'spring', stiffness: 360, damping: 28 }}
                     >
-                      <div className="bar-glow" />
+                      <div className="block-top-row">
+                        <span className="block-idx">#{idx}</span>
+                        <span className="block-state-tag">{stateText}</span>
+                      </div>
+                      <strong className="block-val">{val}</strong>
+                      <div className="block-meter-track">
+                        <div className="block-meter-fill" style={{ width: `${Math.min(100, val)}%` }} />
+                      </div>
                     </motion.div>
-                    <span className="bar-idx">[{idx}]</span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Compact Telemetry Color Legend */}
+            <div className="stage-legend">
+              {selectedAlgo === 'binarysearch' ? (
+                <>
+                  <span><i className="leg-dot leg-low" /> Batas Low/High</span>
+                  <span><i className="leg-dot leg-swap" /> Titik Tengah (Mid)</span>
+                  <span><i className="leg-dot leg-sorted" /> Target Ditemukan</span>
+                </>
+              ) : (
+                <>
+                  <span><i className="leg-dot leg-normal" /> Normal</span>
+                  <span><i className="leg-dot leg-cmp" /> Bandingkan (CMP)</span>
+                  <span><i className="leg-dot leg-swap" /> Tukar (SWAP)</span>
+                  <span><i className="leg-dot leg-sorted" /> Terurut</span>
+                </>
+              )}
             </div>
 
             {/* Status Commentary Banner */}
@@ -754,7 +902,7 @@ function AlgorithmVisualizer() {
               <p>{statusMessage}</p>
             </div>
 
-            {/* Playback Controls */}
+            {/* Studio Playback Controls (Balanced 4-col Dock + Custom Slider) */}
             <div className="algo-controls">
               <div className="control-btn-group">
                 <button
@@ -764,11 +912,11 @@ function AlgorithmVisualizer() {
                 >
                   {isPlaying ? (
                     <>
-                      <LuPause size={16} /> Jeda
+                      <LuPause size={15} /> Jeda
                     </>
                   ) : (
                     <>
-                      <LuPlay size={16} /> Jalankan
+                      <LuPlay size={15} /> Jalankan
                     </>
                   )}
                 </button>
@@ -778,21 +926,21 @@ function AlgorithmVisualizer() {
                   disabled={isPlaying}
                   title="Langkah Berikutnya"
                 >
-                  <LuStepForward size={16} /> Langkah Maju
+                  <LuStepForward size={15} /> Maju
                 </button>
                 <button
                   className="btn btn-outline"
                   onClick={() => resetSimulation(array, searchTarget)}
                   title="Ulangi dari Langkah Pertama"
                 >
-                  <LuRotateCcw size={16} /> Reset
+                  <LuRotateCcw size={15} /> Reset
                 </button>
                 <button
                   className="btn btn-outline"
                   onClick={handleShuffle}
                   title="Acak Data Baru"
                 >
-                  <LuShuffle size={16} /> Acak Data
+                  <LuShuffle size={15} /> Acak
                 </button>
               </div>
 
@@ -808,6 +956,7 @@ function AlgorithmVisualizer() {
                   onChange={(e) => setSpeed(1080 - Number(e.target.value))}
                   className="sim-slider"
                 />
+                <span className="speed-badge">{speedMultiplier}</span>
               </div>
             </div>
           </div>
@@ -827,21 +976,24 @@ function AlgorithmVisualizer() {
                 <span className="editor-filename">
                   {selectedAlgo}.{selectedLang === 'python' ? 'py' : selectedLang === 'c' ? 'c' : 'js'}
                 </span>
+                <span className="editor-scroll-hint">← Geser kode →</span>
               </div>
               <div className="code-lines">
-                {currentSnippetList.map((lineObj) => {
-                  const isActive = currentLine === lineObj.line
-                  return (
-                    <div
-                      key={lineObj.line}
-                      className={`code-line-row ${isActive ? 'active-line' : ''}`}
-                    >
-                      <span className="line-num">{lineObj.line}</span>
-                      <span className="line-code">{lineObj.code}</span>
-                      {isActive && <span className="line-pointer">&lt;- DIEKSEKUSI</span>}
-                    </div>
-                  )
-                })}
+                <div className="code-lines-inner">
+                  {currentSnippetList.map((lineObj) => {
+                    const isActive = currentLine === lineObj.line
+                    return (
+                      <div
+                        key={lineObj.line}
+                        className={`code-line-row ${isActive ? 'active-line' : ''}`}
+                      >
+                        <span className="line-num">{lineObj.line}</span>
+                        <span className="line-code">{lineObj.code}</span>
+                        {isActive && <span className="line-pointer">&lt;- DIEKSEKUSI</span>}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
@@ -897,7 +1049,9 @@ function AlgorithmVisualizer() {
 
             {/* Visual Pointer Arrow */}
             <div className="pointer-arrow-wrap">
-              <div className="pointer-laser" />
+              <div className="pointer-laser">
+                <span className="pointer-pulse-dot" />
+              </div>
               <span className="pointer-label">Menunjuk Alamat (&a) -&gt;</span>
             </div>
 
@@ -922,6 +1076,7 @@ function AlgorithmVisualizer() {
               onClick={() => {
                 setPointedValue(Math.floor(Math.random() * 90) + 10)
                 playSoundCue('log')
+                onSimulate?.()
               }}
             >
               Ubah Nilai *ptr Secara Acak
@@ -932,6 +1087,7 @@ function AlgorithmVisualizer() {
                 const nextAddr = '0x7ffee' + Math.floor(Math.random() * 89999 + 10000).toString(16)
                 setPointerAddress(nextAddr)
                 playSoundCue('click')
+                onSimulate?.()
               }}
             >
               Alokasikan Alamat RAM Baru (malloc)
@@ -946,21 +1102,47 @@ function AlgorithmVisualizer() {
           <div className="memory-intro">
             <h3>Simulasi Pita Memori Mesin Turing (Brainfuck)</h3>
             <p>
-              Brainfuck beroperasi pada pita memori tak terbatas dengan pointer sel memori satu byte (0-255).
+              Brainfuck beroperasi pada pita memori tak terbatas dengan pointer sel memori satu byte (0-255). Ketuk sel untuk memindahkan pointer!
             </p>
           </div>
 
-          {/* Tape Grid */}
+          {/* Live Tape Telemetry Status */}
+          <div className="tape-status-bar">
+            <div className="tape-stat-chip">
+              <span>Output ASCII:</span>
+              <code>&quot;{tapeOutputString || '(kosong)'}&quot;</code>
+            </div>
+            <div className="tape-stat-chip">
+              <span>Head:</span>
+              <strong>
+                Sel #{tapeHead} &middot; {tape[tapeHead]} ({formatTapeAscii(tape[tapeHead])})
+              </strong>
+            </div>
+          </div>
+
+          {/* Interactive Clickable Tape Grid (8 cells on 1 row desktop / 4x2 mobile) */}
           <div className="tape-container">
             {tape.map((val, cellIdx) => {
               const isHead = tapeHead === cellIdx
+              const bytePct = Math.round((val / 255) * 100)
               return (
-                <div key={cellIdx} className={`tape-cell ${isHead ? 'head-active' : ''}`}>
+                <button
+                  type="button"
+                  key={cellIdx}
+                  onClick={() => {
+                    setTapeHead(cellIdx)
+                    playSoundCue('select')
+                  }}
+                  className={`tape-cell ${isHead ? 'head-active' : ''}`}
+                >
                   {isHead && <div className="tape-head-label">HEAD PTR</div>}
                   <div className="cell-num">{val}</div>
-                  <div className="cell-char">'{String.fromCharCode(val || 32)}'</div>
+                  <div className="cell-char">{formatTapeAscii(val)}</div>
                   <div className="cell-idx">Sel #{cellIdx}</div>
-                </div>
+                  <div className="cell-meter-track">
+                    <div className="cell-meter-fill" style={{ width: `${bytePct}%` }} />
+                  </div>
+                </button>
               )
             })}
           </div>
@@ -968,24 +1150,26 @@ function AlgorithmVisualizer() {
           <div className="tape-actions">
             <button
               className="btn btn-outline"
+              disabled={tapeHead === 0}
               onClick={() => {
                 setTapeHead((prev) => Math.max(0, prev - 1))
                 playSoundCue('click')
               }}
             >
-              &lt; Geser Kiri (&lt;)
+              &lsaquo; Geser Kiri (&lt;)
             </button>
             <button
               className="btn btn-outline"
+              disabled={tapeHead === tape.length - 1}
               onClick={() => {
                 setTapeHead((prev) => Math.min(tape.length - 1, prev + 1))
                 playSoundCue('click')
               }}
             >
-              &gt; Geser Kanan (&gt;)
+              Geser Kanan (&gt;) &rsaquo;
             </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-tape-inc"
               onClick={() => {
                 setTape((prev) => {
                   const n = [...prev]
@@ -993,12 +1177,13 @@ function AlgorithmVisualizer() {
                   return n
                 })
                 playSoundCue('click')
+                onSimulate?.()
               }}
             >
-              + Tambah Nilai (+)
+              + Tambah (+)
             </button>
             <button
-              className="btn btn-outline"
+              className="btn btn-tape-dec"
               onClick={() => {
                 setTape((prev) => {
                   const n = [...prev]
@@ -1006,23 +1191,31 @@ function AlgorithmVisualizer() {
                   return n
                 })
                 playSoundCue('click')
+                onSimulate?.()
               }}
             >
-              - Kurang Nilai (-)
+              - Kurang (-)
             </button>
             <button
-              className="btn btn-outline"
+              className="btn btn-outline tape-reset-btn"
               onClick={() => {
                 setTape([72, 101, 108, 108, 111, 0, 0, 0])
                 setTapeHead(0)
                 playSoundCue('click')
+                onSimulate?.()
               }}
             >
-              Reset Pita ("Hello")
+              Reset Pita (&quot;Hello&quot;)
             </button>
           </div>
         </div>
       )}
+
+      {/* 5. MINI-GAME A: BINARY SEARCH HUNTER */}
+      {selectedAlgo === 'game_binary' && <BinaryHuntGame onSimulate={onSimulate} />}
+
+      {/* 6. MINI-GAME B: SORT RUSH ARENA */}
+      {selectedAlgo === 'game_sort' && <SortRushGame onSimulate={onSimulate} />}
     </div>
   )
 }

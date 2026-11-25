@@ -1,0 +1,622 @@
+/* ===== Non-Monotonous Sculptural Winding Checkpoint Trail (Matte Solid) ===== */
+.checkpoint-roadmap {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.1rem 0 0.4rem;
+}
+
+.cr-step-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Winding S-Curve Bezier SVG Connector */
+.cr-connector {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+}
+
+.cr-bezier-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cr-bezier-bg {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.14);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.cr-bezier-fg {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.cr-conn-done .cr-bezier-fg {
+  stroke: #10b981;
+}
+
+.cr-conn-active .cr-bezier-fg {
+  stroke: #6366f1;
+  stroke-dasharray: 6 6;
+  animation: crFlow 1.2s linear infinite;
+}
+
+.cr-conn-locked .cr-bezier-fg {
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-dasharray: 4 6;
+}
+
+@keyframes crFlow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/* Lane Alignments */
+.lane-center {
+  align-self: center;
+}
+
+.lane-left {
+  align-self: flex-start;
+  margin-left: 4%;
+  max-width: 82%;
+}
+
+.lane-right {
+  align-self: flex-end;
+  margin-right: 4%;
+  max-width: 82%;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.lane-right .cr-waypoint-tags {
+  justify-content: flex-end;
+}
+
+/* Mid-Unit Milestone Relay Pod */
+.cr-milestone-relay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  background: #121629;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.cr-milestone-relay.is-done {
+  background: #0d1e1b;
+  border-style: solid;
+  border-color: rgba(16, 185, 129, 0.48);
+  color: #34d399;
+}
+
+.cr-relay-gem {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cr-milestone-relay.is-done .cr-relay-gem {
+  background: #059669;
+  color: #ffffff;
+}
+
+/* ARCHETYPE 1: Active Hero Mission Station */
+.cr-active-station {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  background: #141930;
+  border: 1.5px solid #6366f1;
+  border-radius: 18px;
+  padding: 1.15rem 1.3rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(79, 70, 229, 0.14);
+}
+
+.cr-active-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.7rem;
+}
+
+.cr-active-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cr-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: rgba(79, 70, 229, 0.24);
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  color: #c7d2fe;
+}
+
+.cr-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: crPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes crPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+
+.cr-type-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.cr-xp-chip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+.cr-xp-chip.cr-xp-indigo {
+  background: rgba(79, 70, 229, 0.22);
+  color: #c7d2fe;
+}
+
+.cr-active-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cr-active-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.cr-active-copy h4 {
+  margin: 0 0 0.25rem;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.cr-active-copy p {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.48;
+}
+
+.cr-active-mascot {
+  flex-shrink: 0;
+}
+
+.cr-btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.62rem 1.2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.35);
+}
+
+.cr-btn-start:hover {
+  background: #4338ca;
+}
+
+/* ARCHETYPES 2 & 3: Sculptural Alternating Waypoint Stations */
+.cr-waypoint-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.35rem 0.2rem;
+}
+
+.cr-medallion-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  padding: 4px;
+  background: #0d211d;
+  border: 2px solid #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.cr-medallion-btn:hover {
+  transform: scale(1.06);
+}
+
+.cr-medallion-core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #059669;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sculpted Geometric Nodes for Locked Upcoming Checkpoints */
+.cr-geo-node {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #171c32;
+  border: 1.5px solid rgba(148, 163, 184, 0.28);
+  color: #94a3b8;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.cr-geo-node:hover {
+  transform: scale(1.06);
+  border-color: rgba(129, 140, 248, 0.55);
+  color: #e2e8f0;
+}
+
+/* Materi / Lesson = Hexagon Crest */
+.cr-geo-node.shape-lesson,
+.cr-geo-node.shape-materi {
+  clip-path: polygon(50% 2%, 95% 26%, 95% 74%, 50% 98%, 5% 74%, 5% 26%);
+  border: none;
+  background: rgba(96, 165, 250, 0.22);
+  color: #60a5fa;
+  position: relative;
+}
+
+/* Quiz = Rotated Diamond */
+.cr-geo-node.shape-quiz {
+  width: 44px;
+  height: 44px;
+  margin: 4px;
+  border-radius: 10px;
+  transform: rotate(45deg);
+  border-color: rgba(251, 191, 36, 0.38);
+  background: #1f1b14;
+  color: #fbbf24;
+}
+
+.cr-geo-node.shape-quiz:hover {
+  transform: rotate(45deg) scale(1.06);
+}
+
+.cr-geo-node.shape-quiz .cr-geo-inner {
+  transform: rotate(-45deg);
+  display: flex;
+}
+
+/* Simulator = Chamfered Octagon */
+.cr-geo-node.shape-simulator {
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  border: none;
+  background: rgba(167, 139, 250, 0.22);
+  color: #c4b5fd;
+}
+
+.cr-waypoint-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.cr-waypoint-clickable {
+  cursor: pointer;
+}
+
+.cr-waypoint-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.2rem;
+}
+
+.cr-cp-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+}
+
+.cr-cp-label.done {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.cr-cp-label.type-lesson,
+.cr-cp-label.type-materi {
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.cr-cp-label.type-quiz {
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.cr-cp-label.type-simulator {
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.cr-locked-xp {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.cr-waypoint-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  line-height: 1.3;
+}
+
+.cr-waypoint-row.is-locked .cr-waypoint-title {
+  color: #cbd5e1;
+}
+
+.cr-btn-repeat-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #181e34;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cr-btn-repeat-mini:hover {
+  background: #232b49;
+  color: #ffffff;
+}
+
+.cr-unlock-inline-hint {
+  margin-top: 0.38rem;
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #14182b;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+/* ARCHETYPE 4: BOSS CHECKPOINT CITADEL */
+.cr-boss-citadel {
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.15rem 1.3rem;
+  border-radius: 18px;
+  background: #151422;
+  border: 1.5px solid rgba(245, 158, 11, 0.34);
+}
+
+.cr-boss-citadel.is-active {
+  background: #1b1724;
+  border-color: #f59e0b;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+}
+
+.cr-boss-citadel.is-done {
+  background: #0e1e1c;
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.cr-boss-crest {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1.5px solid rgba(245, 158, 11, 0.42);
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cr-boss-citadel.is-done .cr-boss-crest {
+  background: #059669;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.cr-boss-citadel.is-locked .cr-boss-crest {
+  background: #171a2d;
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #64748b;
+}
+
+.cr-boss-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cr-boss-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.cr-boss-badge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.cr-boss-body h4 {
+  margin: 0 0 0.2rem;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.cr-boss-body p {
+  margin: 0 0 0.75rem;
+  font-size: 0.83rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.cr-btn-boss-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.58rem 1.15rem;
+  border-radius: 10px;
+  border: none;
+  background: #d97706;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cr-btn-boss-play:hover {
+  background: #b45309;
+}
+
+.cr-btn-repeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.52rem 0.95rem;
+  border-radius: 10px;
+  background: #171c31;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cr-boss-locked-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.4rem 0.72rem;
+  border-radius: 9px;
+}
+
+@media (max-width: 640px) {
+  .lane-left {
+    margin-left: 1%;
+    max-width: 92%;
+  }
+
+  .lane-right {
+    margin-right: 1%;
+    max-width: 92%;
+  }
+
+  .cr-active-station,
+  .cr-boss-citadel {
+    padding: 1rem;
+  }
+
+  .cr-active-main {
+    gap: 0.75rem;
+  }
+
+  .cr-btn-start,
+  .cr-btn-boss-play {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cr-medallion-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cr-geo-node {
+    width: 46px;
+    height: 46px;
+  }
+
+  .cr-geo-node.shape-quiz {
+    width: 40px;
+    height: 40px;
+  }
+}

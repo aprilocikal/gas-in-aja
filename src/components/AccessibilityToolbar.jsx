@@ -10,41 +10,11 @@ import {
   LuX,
   LuCheck,
 } from 'react-icons/lu'
+import { playSound } from '../utils/soundEffects'
 import './AccessibilityToolbar.css'
 
 export function playSoundCue(type = 'click') {
-  if (sessionStorage.getItem('kinetix_sound') !== 'true') return
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-
-    if (type === 'click') {
-      osc.frequency.setValueAtTime(600, ctx.currentTime)
-      gain.gain.setValueAtTime(0.08, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.1)
-    } else if (type === 'success') {
-      osc.frequency.setValueAtTime(440, ctx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18)
-      gain.gain.setValueAtTime(0.12, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.25)
-    } else if (type === 'log') {
-      osc.frequency.setValueAtTime(520, ctx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(650, ctx.currentTime + 0.15)
-      gain.gain.setValueAtTime(0.1, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.2)
-    }
-  } catch (e) {
-    // AudioContext not allowed before user gesture
-  }
+  playSound(type)
 }
 
 function AccessibilityToolbar() {
@@ -52,14 +22,14 @@ function AccessibilityToolbar() {
   const [fontSize, setFontSize] = useState('normal')
   const [highContrast, setHighContrast] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(false)
-  const [soundEnabled, setSoundEnabled] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(true)
 
   useEffect(() => {
     // Load persisted settings
     const savedFont = localStorage.getItem('kinetix_font_size') || 'normal'
     const savedContrast = localStorage.getItem('kinetix_high_contrast') === 'true'
     const savedMotion = localStorage.getItem('kinetix_reduce_motion') === 'true'
-    const savedSound = sessionStorage.getItem('kinetix_sound') === 'true'
+    const savedSound = localStorage.getItem('kinetix_sound_enabled') !== 'false'
 
     setFontSize(savedFont)
     setHighContrast(savedContrast)
@@ -102,8 +72,8 @@ function AccessibilityToolbar() {
   const handleSoundToggle = () => {
     const next = !soundEnabled
     setSoundEnabled(next)
-    sessionStorage.setItem('kinetix_sound', String(next))
-    if (next) playSoundCue('success')
+    localStorage.setItem('kinetix_sound_enabled', String(next))
+    if (next) playSoundCue('click')
   }
 
   return (
@@ -255,7 +225,7 @@ function AccessibilityToolbar() {
                     handleFontChange('normal')
                     if (highContrast) handleContrastToggle()
                     if (reduceMotion) handleMotionToggle()
-                    if (soundEnabled) handleSoundToggle()
+                    if (!soundEnabled) handleSoundToggle()
                   }}
                 >
                   Reset Default
