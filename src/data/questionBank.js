@@ -1655,9 +1655,10 @@ export const QUESTION_BANK = [
     type: 'word_bank',
     tags: ['binary', 'search', 'pointer', 'algoritma'],
     title: 'Rumus Titik Tengah Binary Search',
-    prompt: 'Susun rumus mencari indeks tengah mid tanpa risiko integer overflow di Binary Search.',
+    prompt: 'Susun ekspresi rumus indeks tengah mid tanpa risiko integer overflow di Binary Search (tanpa "mid =").',
     speechText: 'Susun ekspresi low + (high - low) / 2.',
-    targetSequence: ['mid', '=', 'low', '+', '(', 'high - low', ')', '/ 2'],
+    targetSequence: ['low', '+', '(', 'high - low', ')', '/ 2'],
+    altSequences: [['mid', '=', 'low', '+', '(', 'high - low', ')', '/ 2']],
     distractors: ['mid + 1', '* 2'],
     explanation: 'Formula low + (high - low) / 2 menghindari penjumlahan low + high yang bisa meluap pada integer besar.',
   },
@@ -1759,14 +1760,57 @@ function rotateWithModuleSeed(list, seed) {
   return [...list.slice(offset), ...list.slice(0, offset)]
 }
 
+const TOPIC_SYNONYMS = {
+  perulangan: ['loop', 'for', 'while', 'range', 'iterasi'],
+  loop: ['perulangan', 'for', 'while', 'range'],
+  percabangan: ['kondisional', 'if', 'elif', 'else', 'switch', 'logika'],
+  kondisional: ['percabangan', 'if', 'elif', 'else', 'switch', 'logika'],
+  variabel: ['tipe', 'data', 'dasar', 'int', 'float', 'const', 'let'],
+  tipe: ['variabel', 'data', 'dasar', 'int', 'float', 'string'],
+  fungsi: ['function', 'def', 'return', 'parameter', 'method'],
+  function: ['fungsi', 'def', 'return', 'parameter'],
+  array: ['list', 'tuple', 'slice', 'koleksi', 'slicing'],
+  list: ['array', 'tuple', 'dict', 'koleksi', 'slicing'],
+  pointer: ['memori', 'alamat', 'malloc', 'stack', 'heap'],
+  memori: ['pointer', 'stack', 'heap', 'borrow', 'ownership'],
+  sorting: ['bubble', 'selection', 'insertion', 'algoritma', 'swap'],
+  binary: ['search', 'algoritma', 'mid', 'pencarian'],
+  oop: ['class', 'object', 'struct', 'method', 'interface'],
+}
+
 function extractKeywords(moduleMeta) {
   const raw = `${moduleMeta?.moduleTitle || ''} ${moduleMeta?.moduleDesc || ''}`
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
-  const stopWords = new Set(['dan', 'yang', 'atau', 'dengan', 'untuk', 'pada', 'dari', 'dalam', 'secara', 'cara', 'dasar'])
-  return raw
+  const stopWords = new Set([
+    'dan',
+    'yang',
+    'atau',
+    'dengan',
+    'untuk',
+    'pada',
+    'dari',
+    'dalam',
+    'secara',
+    'cara',
+    'dasar',
+    'fundamental',
+    'fundamentals',
+    'lanjutan',
+    'expert',
+  ])
+  const baseWords = raw
     .split(/\s+/)
     .filter((w) => w.length >= 2 && !stopWords.has(w))
+
+  const expanded = new Set(baseWords)
+  for (const w of baseWords) {
+    const syns = TOPIC_SYNONYMS[w]
+    if (syns) {
+      for (const s of syns) expanded.add(s)
+    }
+  }
+  return Array.from(expanded)
 }
 
 function scoreQuestion(q, keywords) {
@@ -1779,7 +1823,7 @@ function scoreQuestion(q, keywords) {
 
   let score = 0
   for (const kw of keywords) {
-    if ((q.tags || []).some((t) => t.toLowerCase().includes(kw) || kw.includes(t.toLowerCase()))) {
+    if ((q.tags || []).some((t) => t.toLowerCase() === kw || t.toLowerCase().includes(kw))) {
       score += 3
     } else if (haystack.includes(kw)) {
       score += 1
@@ -1804,12 +1848,15 @@ function isValidQuestion(q) {
 
 /**
  * Generate a randomized, topic-tailored lesson pack for a given programming language and module.
- * Prioritizes module topic keywords and varies selection per moduleId so every module feels distinct.
+ * Prioritizes module topic relevance within the chosen language first, avoids repeating the same
+ * slice across different units, and only pulls general algorithm questions when topic-matched or needed.
  */
 export function generateRandomLessonPack(langId = 'python', count = 6, moduleMeta = {}) {
   const normalized = (langId || 'python').toLowerCase()
   const keywords = extractKeywords(moduleMeta)
-  const seed = hashModuleSeed(`${normalized}-${moduleMeta?.moduleId || ''}-${moduleMeta?.moduleTitle || ''}`)
+  const seed = hashModuleSeed(
+    `${normalized}-${moduleMeta?.unitId || ''}-${moduleMeta?.moduleId || ''}-${moduleMeta?.moduleTitle || ''}`
+  )
 
   const rankPool = (pool) => {
     const valid = pool.filter(isValidQuestion)
@@ -1818,25 +1865,35 @@ export function generateRandomLessonPack(langId = 'python', count = 6, moduleMet
       .map((q, idx) => ({
         q,
         score: scoreQuestion(q, keywords),
-        jitter: Math.random() * 0.65,
         tieOrder: idx,
       }))
-      .sort((a, b) => b.score + b.jitter - (a.score + a.jitter))
-      .map((item) => item.q)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score
+        return a.tieOrder - b.tieOrder
+      })
   }
 
-  const langPool = rankPool(QUESTION_BANK.filter((q) => q.lang === normalized))
-  const generalPool = rankPool(QUESTION_BANK.filter((q) => q.lang === 'general'))
-  const fallbackPool = rankPool(
+  const langRanked = rankPool(QUESTION_BANK.filter((q) => q.lang === normalized))
+  const generalRanked = rankPool(QUESTION_BANK.filter((q) => q.lang === 'general'))
+  const fallbackRanked = rankPool(
     QUESTION_BANK.filter((q) => q.lang !== normalized && q.lang !== 'general')
   )
 
+  const langMatched = langRanked.filter((item) => item.score > 0).map((item) => item.q)
+  const langRest = langRanked.filter((item) => item.score === 0).map((item) => item.q)
+  const generalMatched = generalRanked.filter((item) => item.score >= 3).map((item) => item.q)
+  const generalRest = generalRanked.filter((item) => item.score < 3).map((item) => item.q)
+  const fallbackPool = fallbackRanked.map((item) => item.q)
+
+  const langPool = [...langMatched, ...langRest]
+  const generalPool = [...generalMatched, ...generalRest]
+
   const targetCount = Math.max(1, count)
   const combined = [
-    ...langPool.slice(0, Math.min(4, targetCount)),
-    ...generalPool.slice(0, 3),
-    ...langPool.slice(4),
-    ...generalPool.slice(3),
+    ...langMatched,
+    ...generalMatched.slice(0, 2),
+    ...langRest,
+    ...generalRest,
     ...fallbackPool,
   ]
 

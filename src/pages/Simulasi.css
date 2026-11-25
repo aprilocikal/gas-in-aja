@@ -231,7 +231,12 @@
 .logger-header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.logger-header-actions .btn {
+  white-space: nowrap;
 }
 
 .logger-empty {

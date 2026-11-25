@@ -363,9 +363,15 @@ export default function InteractiveLessonPack({
 
     let isCorrect = false
     if (currentQ.type === 'word_bank') {
-      const normalize = (tokens) => tokens.join(' ').replace(/\s+/g, ' ').trim()
-      isCorrect =
-        normalize(selectedChips.map((c) => c.text)) === normalize(currentQ.targetSequence)
+      const normalize = (tokens) =>
+        tokens
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .replace(/\s*([(),;:])\s*/g, '$1')
+          .trim()
+      const userAnswer = normalize(selectedChips.map((c) => c.text))
+      const validSequences = [currentQ.targetSequence, ...(currentQ.altSequences || [])]
+      isCorrect = validSequences.some((seq) => Array.isArray(seq) && normalize(seq) === userAnswer)
     } else {
       isCorrect = selectedOption === currentQ.correctAnswer
     }
@@ -1030,6 +1036,11 @@ export default function InteractiveLessonPack({
                   )}
                 </div>
                 <p className="feedback-expl">{currentQ.explanation}</p>
+                {feedback === 'wrong' && currentQ.type === 'word_bank' && currentQ.targetSequence && (
+                  <p className="feedback-expl" style={{ marginTop: '0.4rem', color: '#fde68a' }}>
+                    Susunan tepat: <code>{currentQ.targetSequence.join(' ')}</code>
+                  </p>
+                )}
               </div>
 
               <button

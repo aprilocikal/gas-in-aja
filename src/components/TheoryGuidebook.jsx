@@ -361,15 +361,28 @@ export default function TheoryGuidebook({ lang, onClose }) {
             </div>
           </div>
 
-          <button
-            className="book-nav-btn book-nav-next"
-            onClick={handleNext}
-            disabled={page === totalPages}
-            aria-label="Halaman Selanjutnya"
-          >
-            <span className="btn-nav-label">Selanjutnya</span>
-            <LuChevronRight size={17} />
-          </button>
+          {page === totalPages ? (
+            <button
+              className="book-nav-btn book-nav-next"
+              onClick={() => {
+                playSoundCue('success')
+                onClose?.()
+              }}
+              aria-label="Selesai Membaca"
+            >
+              <span className="btn-nav-label">Selesai</span>
+              <LuCheck size={17} />
+            </button>
+          ) : (
+            <button
+              className="book-nav-btn book-nav-next"
+              onClick={handleNext}
+              aria-label="Halaman Selanjutnya"
+            >
+              <span className="btn-nav-label">Selanjutnya</span>
+              <LuChevronRight size={17} />
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
