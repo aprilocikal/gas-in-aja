@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import SplashIntro from './components/SplashIntro'
 import Home from './pages/Home'
 import AlurBelajar from './pages/AlurBelajar'
 import Simulasi from './pages/Simulasi'
@@ -52,7 +53,7 @@ function RequireAuth({ children }) {
   // user=undefined means still loading; user=null means logged out
   if (user === undefined) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0a1a' }}>
         <div style={{ width: 36, height: 36, border: '3px solid #6366f1', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       </div>
     )
@@ -76,7 +77,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/alur-belajar" element={<AlurBelajar />} />
-          <Route path="/auth" element={<AuthPage onAuthSuccess={() => window.location.replace('/learn')} />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route
             path="/learn"
             element={
@@ -108,6 +109,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <SplashIntro />
         <AppContent />
       </AuthProvider>
     </ErrorBoundary>

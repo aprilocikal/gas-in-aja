@@ -6,19 +6,27 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult,
   updateProfile,
 } from 'firebase/auth'
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db, googleProvider } from '../firebase/firebaseConfig'
-import { useAuth } from '../contexts/AuthContext'
+import { auth, googleProvider } from '../firebase/firebaseConfig'
+import { useAuth, ensureUserDoc } from '../contexts/AuthContext'
+
+// Browser bawaan aplikasi (Instagram, FB, TikTok, Line, WhatsApp, dll) diblokir oleh Google untuk login
+const isInAppBrowser = () => {
+  const ua = navigator.userAgent || navigator.vendor || ''
+  return /FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|TikTok|musical_ly|Bytedance|WhatsApp|Snapchat|; wv\)/i.test(ua)
+}
+
+const isMobileDevice = () =>
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') ||
+  (window.matchMedia && window.matchMedia('(max-width: 768px)').matches)
 import { LuCode, LuMail, LuLock, LuUser, LuEye, LuEyeOff, LuArrowRight, LuArrowLeft, LuSparkles, LuX } from 'react-icons/lu'
 import KinetixLogo from '../components/KinetixLogo'
 import './AuthPage.css'
 
 export default function AuthPage({ onAuthSuccess }) {
   const navigate = useNavigate()
-  const { user, continueAsGuest } = useAuth()
+  const { user, continueAsGuest, authError, clearAuthError } = useAuth()
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,62 +35,24 @@ export default function AuthPage({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Auto-redirect if already logged in or handle redirect result from Google
+  // Auto-redirect begitu user (akun asli) terdeteksi login — termasuk setelah kembali dari Google redirect
   useEffect(() => {
-    let mounted = true
     if (user && !user.isAnonymous) {
-      if (onAuthSuccess) {
-        onAuthSuccess(user)
-      } else {
-        navigate('/learn', { replace: true })
-      }
-      return
+      if (onAuthSuccess) onAuthSuccess(user)
+      else navigate('/learn', { replace: true })
     }
-
-    // Check redirect auth result (fixes infinite white popup)
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (mounted && result?.user) {
-          await handleFirestoreUser(result.user)
-          if (onAuthSuccess) onAuthSuccess(result.user)
-          else navigate('/learn', { replace: true })
-        }
-      })
-      .catch((err) => {
-        if (mounted && err && err.code !== 'auth/null-user') {
-          console.warn('Redirect result:', err)
-        }
-      })
-
-    return () => { mounted = false }
   }, [user, navigate, onAuthSuccess])
 
-  const handleFirestoreUser = async (u) => {
-    try {
-      const ref = doc(db, 'users', u.uid)
-      const snap = await getDoc(ref)
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          uid: u.uid,
-          email: u.email,
-          displayName: u.displayName || displayName || 'Koder Baru',
-          photoURL: u.photoURL || null,
-          xp: 0,
-          gems: 0,
-          hearts: 5,
-          streak: 0,
-          lastActiveDate: null,
-          selectedLang: 'python',
-          completedModules: [],
-          createdAt: serverTimestamp(),
-        })
-      }
-      return snap.data() || {}
-    } catch (err) {
-      console.warn('Firestore profile sync warning (non-fatal):', err)
-      return {}
+  // Tampilkan error dari Google redirect (diproses di AuthContext)
+  useEffect(() => {
+    if (authError) {
+      setError(friendlyError(authError))
+      clearAuthError()
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authError])
+
+  const handleFirestoreUser = (u) => ensureUserDoc(u, displayName)
 
   // Smart Unified Email Auth: Auto-detects if user exists -> Login, if not -> Register!
   const handleEmailSubmit = async (e) => {
@@ -146,23 +116,38 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  // Google Sign-In: uses direct redirect to eliminate cross-origin popup freezing
+  // Google Sign-In: popup dulu (paling andal di Chrome/Safari modern, termasuk HP),
+  // fallback ke redirect hanya jika popup diblokir / tidak didukung.
   const handleGoogleLogin = async () => {
     setError('')
+    if (isInAppBrowser()) {
+      setError('Login Google tidak didukung di browser bawaan aplikasi (Instagram/WhatsApp/TikTok, dll). Buka link ini di Chrome atau Safari, lalu coba lagi.')
+      return
+    }
     setLoading(true)
     try {
-      // Direct redirect bypasses Chrome third-party cookie/popup handler hang
-      await signInWithRedirect(auth, googleProvider)
+      const result = await signInWithPopup(auth, googleProvider)
+      await handleFirestoreUser(result.user)
+      if (onAuthSuccess) onAuthSuccess(result.user)
+      else navigate('/learn', { replace: true })
     } catch (err) {
-      console.warn('Redirect failed, trying popup:', err)
-      try {
-        const result = await signInWithPopup(auth, googleProvider)
-        await handleFirestoreUser(result.user)
-        if (onAuthSuccess) onAuthSuccess(result.user)
-        else navigate('/learn', { replace: true })
-      } catch (popErr) {
-        console.error('Google login error:', popErr)
-        setError(friendlyError(popErr.code || popErr.message))
+      const code = err?.code || ''
+      const shouldRedirect =
+        code === 'auth/popup-blocked' ||
+        code === 'auth/operation-not-supported-in-environment' ||
+        code === 'auth/web-storage-unsupported' ||
+        (code === 'auth/cancelled-popup-request' && isMobileDevice())
+      if (shouldRedirect) {
+        try {
+          await signInWithRedirect(auth, googleProvider)
+          return // halaman akan pindah ke Google
+        } catch (redirErr) {
+          console.error('Google redirect error:', redirErr)
+          setError(friendlyError(redirErr.code || redirErr.message))
+        }
+      } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        console.error('Google login error:', err)
+        setError(friendlyError(code || err.message))
       }
     } finally {
       setLoading(false)
@@ -188,8 +173,13 @@ export default function AuthPage({ onAuthSuccess }) {
       'auth/too-many-requests': 'Terlalu banyak percobaan gagal. Silakan tunggu sebentar.',
       'auth/popup-closed-by-user': 'Jendela login Google ditutup sebelum selesai.',
       'auth/popup-blocked': 'Popup diblokir oleh browser. Izinkan popup untuk login Google.',
-      'auth/unauthorized-domain': 'Domain ini belum diotorisasi di Firebase. Gunakan "Mode Tamu" untuk langsung mulai.',
+      'auth/unauthorized-domain': 'Domain ini belum diizinkan di Firebase (Authentication → Settings → Authorized domains). Sementara gunakan "Mode Tamu".',
       'auth/invalid-credential': 'Email atau password tidak cocok. Silakan coba lagi.',
+      'auth/network-request-failed': 'Koneksi internet bermasalah. Periksa jaringan lalu coba lagi.',
+      'auth/operation-not-allowed': 'Metode login ini belum diaktifkan di Firebase Console.',
+      'auth/internal-error': 'Terjadi gangguan saat login. Coba lagi atau buka di Chrome/Safari.',
+      'auth/web-storage-unsupported': 'Browser memblokir penyimpanan/cookie. Aktifkan cookie atau gunakan Chrome.',
+      'auth/account-exists-with-different-credential': 'Email ini sudah terdaftar dengan metode login lain. Masuk pakai email & password.',
     }
     return map[code] || (code ? `Gagal login (${code}). Gunakan Mode Tamu jika butuh cepat.` : 'Terjadi kesalahan. Coba lagi.')
   }
@@ -320,7 +310,7 @@ export default function AuthPage({ onAuthSuccess }) {
         </div>
 
         {/* Google Sign-In */}
-        <button className="btn-google-auth" onClick={handleGoogleLogin} disabled={loading}>
+        <button type="button" className="btn-google-auth" onClick={handleGoogleLogin} disabled={loading}>
           <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
             <path d="M6.306 14.691l6.571 4.819C14.655 15.108 19.0 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>

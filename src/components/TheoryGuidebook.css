@@ -343,3 +343,30 @@
     justify-content: center;
   }
 }
+
+
+/* ===== BUGFIX: buku panduan terpotong di HP ===== */
+.guidebook-backdrop {
+  z-index: 1100;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px)) 0.75rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.guidebook-container {
+  max-height: calc(100vh - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 640px) {
+  .book-top-bar {
+    padding: 1rem;
+  }
+  .book-title {
+    font-size: 1.05rem;
+  }
+  .book-paper-sheet {
+    min-height: 0 !important;
+  }
+}

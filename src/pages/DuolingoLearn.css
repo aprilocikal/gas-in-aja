@@ -2311,3 +2311,357 @@
   background: rgba(99, 102, 241, 0.28) !important;
   color: #ffffff !important;
 }
+
+
+/* =====================================================================
+   LAYOUT & MOBILE BUGFIXES (scroll, konten kepotong, akun/logout mobile)
+   ===================================================================== */
+
+/* Gunakan tinggi viewport dinamis (address bar HP tidak memotong konten) */
+.duo-layout-root,
+.duo-sidebar,
+.duo-main-content,
+.duo-right-panel {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+/* FIX UTAMA: anak dari kolom scroll tidak boleh menyusut (overflow:hidden
+   membuat min-height = 0 sehingga konten terpotong & tidak bisa di-scroll) */
+.duo-main-content > * {
+  flex-shrink: 0;
+}
+
+.duo-subview-wrap {
+  overflow: visible;
+  overflow-x: clip;
+}
+
+/* Isi kartu tidak meluber keluar layar */
+.quest-card-content,
+.unit-header-info,
+.duo-subview-wrap,
+.duo-path-stream {
+  min-width: 0;
+}
+
+.quest-card-content h4,
+.quest-card-content p,
+.unit-section-subtitle {
+  overflow-wrap: anywhere;
+}
+
+/* Grid aman di layar sempit */
+.languages-cards-grid,
+.picker-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+}
+
+/* Modal: tinggi aman di HP */
+.duo-picker-dialog,
+.duo-guide-dialog {
+  max-height: calc(100dvh - 40px);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Topbar mobile: tombol avatar akun */
+.m-avatar-btn {
+  padding: 3px !important;
+  border-radius: 999px !important;
+}
+.m-avatar-btn.active {
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
+}
+.m-avatar-btn svg {
+  display: block;
+}
+
+/* Halaman Akun */
+.account-view {
+  max-width: 620px;
+  margin: 0 auto;
+}
+.account-view-card {
+  display: block !important;
+  margin-bottom: 1.25rem;
+}
+.account-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.account-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.8rem 0.4rem;
+  background: rgba(18, 22, 38, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 14px;
+}
+.account-stat strong {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.account-stat small {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 700;
+}
+.account-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.95rem 1.1rem;
+  background: rgba(18, 22, 38, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 14px;
+  color: #e2e8f0;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.account-menu-item span {
+  flex: 1;
+  min-width: 0;
+}
+.account-menu-item:hover,
+.account-menu-item:active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* ---------- MOBILE (<= 768px) ---------- */
+@media (max-width: 768px) {
+  /* Di HP: scroll pakai dokumen (paling mulus & tidak terpotong address bar) */
+  .duo-layout-root {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+
+  .duo-main-content {
+    display: flex;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible !important;
+    padding: calc(68px + env(safe-area-inset-top, 0px)) 0.85rem calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .duo-mobile-topbar {
+    height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+    padding: env(safe-area-inset-top, 0px) 0.6rem 0 !important;
+    gap: 0.35rem;
+  }
+
+  .m-top-btn {
+    padding: 6px 8px !important;
+    font-size: 0.82rem !important;
+    flex-shrink: 0;
+  }
+
+  .duo-mobile-bottom-nav {
+    height: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 0.25rem env(safe-area-inset-bottom, 0px) !important;
+  }
+
+  .m-nav-item {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 2px !important;
+    font-size: 0.66rem !important;
+  }
+
+  .m-nav-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* Banner & progress */
+  .duo-unit-banner {
+    margin-bottom: 1.1rem;
+  }
+  .unit-banner-title {
+    font-size: 1.15rem;
+  }
+  .unit-breadcrumb {
+    flex-wrap: wrap;
+    font-size: 0.68rem;
+  }
+
+  .xp-progress-section {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    padding: 0.75rem 0.9rem;
+  }
+  .xp-bar-track {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .xp-next-target {
+    margin-left: auto;
+  }
+
+  /* Unit header */
+  .unit-banner-toggle {
+    padding: 0.9rem 0.9rem;
+    gap: 0.6rem;
+  }
+  .unit-header-left {
+    gap: 0.7rem;
+  }
+  .unit-num-badge {
+    width: 36px;
+    height: 36px;
+  }
+  .unit-section-title {
+    white-space: normal;
+    font-size: 0.95rem;
+  }
+  .unit-section-subtitle {
+    font-size: 0.75rem;
+  }
+  .unit-xp-total,
+  .unit-xp-required {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  /* Kartu modul */
+  .kinetix-quest-pipeline {
+    gap: 1rem;
+  }
+  .quest-pipeline-card {
+    gap: 0.7rem;
+  }
+  .quest-card-indicator {
+    width: 38px;
+    flex-shrink: 0;
+  }
+  .quest-node-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .quest-connector-line {
+    top: 38px;
+  }
+  .quest-card-content {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+  .quest-card-top {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .quest-card-content h4 {
+    font-size: 1rem;
+  }
+  .quest-card-content p {
+    font-size: 0.82rem;
+  }
+  .btn-quest-action {
+    width: 100%;
+    justify-content: center;
+    padding: 0.7rem 0.9rem;
+  }
+  .quest-pipeline-card:hover .quest-card-content {
+    transform: none;
+  }
+
+  /* Subview */
+  .subview-header {
+    margin-bottom: 1.25rem;
+  }
+  .subview-header h2 {
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .duo-main-content:has(.playground-view),
+  .duo-main-content:has(.algo-visualizer) {
+    padding: calc(68px + env(safe-area-inset-top, 0px)) 0.85rem calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .playground-toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .playground-editor {
+    min-height: 220px;
+    font-size: 16px; /* cegah auto-zoom iOS */
+  }
+
+  /* Leaderboard */
+  .lb-row {
+    gap: 0.6rem !important;
+    padding: 0.75rem 0.8rem !important;
+  }
+  .lb-name-col {
+    min-width: 0;
+    flex: 1;
+  }
+  .lb-name-col strong {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lb-xp {
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  /* Modal */
+  .duo-modal-backdrop {
+    padding: 12px;
+    align-items: flex-end;
+  }
+  .duo-picker-dialog,
+  .duo-guide-dialog {
+    padding: 1.25rem;
+    border-radius: 20px;
+    max-height: calc(100dvh - 24px);
+  }
+  .picker-header h3 {
+    font-size: 1.1rem;
+  }
+  .streak-week-grid {
+    gap: 4px !important;
+  }
+
+  .account-stats-grid {
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .m-lang-badge span {
+    display: none;
+  }
+  .account-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

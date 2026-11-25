@@ -164,8 +164,59 @@ function DuolingoLearn() {
   const handleLogout = async () => {
     playSoundCue('click')
     await logout()
-    navigate('/auth')
+    navigate('/auth', { replace: true })
   }
+
+  const goNav = (nav) => {
+    setActiveNav(nav)
+    playSoundCue('click')
+    // Scroll ke atas saat pindah tab (mobile memakai scroll dokumen, desktop memakai main)
+    window.scrollTo({ top: 0, behavior: 'auto' })
+    const main = document.querySelector('.duo-main-content')
+    if (main) main.scrollTop = 0
+  }
+
+  const renderAccountCard = (extraClass = '') => (
+    <div className={`right-card user-profile-card ${extraClass}`}>
+      <div className="card-top-row">
+        <h4>{isGuest ? 'Mode Tamu' : 'Akun'}</h4>
+        <button
+          className="btn-avatar-shuffle"
+          onClick={handleRandomizeAvatar}
+          title="Ganti Avatar Random"
+        >
+          <LuRefreshCw size={13} />
+          <span>Ganti Avatar</span>
+        </button>
+      </div>
+      <div className="user-profile-row">
+        <div className="user-avatar-circle" onClick={handleRandomizeAvatar} title="Klik untuk ganti avatar">
+          <RandomCyberAvatar variant={avatarVariant} />
+        </div>
+        <div className="user-profile-info">
+          <strong>{user?.displayName || (isGuest ? 'Mode Tamu' : 'Koder')}</strong>
+          <small>{isGuest ? 'Progres disimpan lokal' : user?.email}</small>
+        </div>
+      </div>
+      {isGuest ? (
+        <>
+          <button className="btn-logout-account btn-login-switch" onClick={() => navigate('/auth')}>
+            <LuUser size={15} />
+            <span>Daftar / Masuk Akun</span>
+          </button>
+          <button className="btn-logout-account" onClick={handleLogout}>
+            <LuLogOut size={15} />
+            <span>Keluar Mode Tamu</span>
+          </button>
+        </>
+      ) : (
+        <button className="btn-logout-account" onClick={handleLogout}>
+          <LuLogOut size={15} />
+          <span>Keluar (Log Out)</span>
+        </button>
+      )}
+    </div>
+  )
 
   const handleRunPlayground = () => {
     setPlaygroundRunning(true)
@@ -240,6 +291,14 @@ function DuolingoLearn() {
           <LuHeart size={16} className="icon-red" />
           <span className="m-stat-num">{hearts}</span>
         </div>
+
+        <button
+          className={`m-top-btn m-avatar-btn ${activeNav === 'akun' ? 'active' : ''}`}
+          onClick={() => goNav('akun')}
+          aria-label="Akun & Logout"
+        >
+          <RandomCyberAvatar variant={avatarVariant} size={26} />
+        </button>
       </header>
 
       {/* ===== LEFT SIDEBAR ===== */}
@@ -690,6 +749,40 @@ function DuolingoLearn() {
             </div>
           </div>
         )}
+
+        {/* VIEW G: AKUN (terutama untuk mobile: profil, logout, menu lain) */}
+        {activeNav === 'akun' && (
+          <div className="duo-subview-wrap account-view">
+            <div className="subview-header">
+              <h2><LuUser size={22} className="icon-inline" /> Akun Saya</h2>
+              <p>Kelola profil, bahasa, dan keluar dari akun.</p>
+            </div>
+
+            {user && renderAccountCard('account-view-card')}
+
+            <div className="account-stats-grid">
+              <div className="account-stat"><LuZap size={18} className="icon-orange" /><strong>{xp}</strong><small>XP</small></div>
+              <div className="account-stat"><LuFlame size={18} className="icon-orange" /><strong>{currentStreak}</strong><small>Streak</small></div>
+              <div className="account-stat"><LuGem size={18} className="icon-cyan" /><strong>{gems}</strong><small>Gems</small></div>
+              <div className="account-stat"><LuHeart size={18} className="icon-red" /><strong>{hearts}</strong><small>Nyawa</small></div>
+            </div>
+
+            <div className="account-menu-list">
+              <button className="account-menu-item" onClick={() => { setShowLangPicker(true); playSoundCue('click') }}>
+                <LuCode size={18} /><span>Ganti Bahasa ({currentLang.name})</span><LuArrowRight size={16} />
+              </button>
+              <button className="account-menu-item" onClick={() => goNav('bahasa')}>
+                <LuStore size={18} /><span>Katalog Semua Bahasa</span><LuArrowRight size={16} />
+              </button>
+              <button className="account-menu-item" onClick={() => { setShowTheoryGuide(true); playSoundCue('click') }}>
+                <LuBookOpen size={18} /><span>Buku Panduan</span><LuArrowRight size={16} />
+              </button>
+              <button className="account-menu-item" onClick={() => navigate('/')}>
+                <LuArrowLeft size={18} /><span>Kembali ke Beranda</span><LuArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ===== RIGHT PANEL (hidden on visualizer & playground) ===== */}
@@ -793,60 +886,29 @@ function DuolingoLearn() {
           </div>
 
           {/* User profile card if logged in or guest */}
-          {user && (
-            <div className="right-card user-profile-card">
-              <div className="card-top-row">
-                <h4>{isGuest ? 'Mode Tamu' : 'Akun'}</h4>
-                <button
-                  className="btn-avatar-shuffle"
-                  onClick={handleRandomizeAvatar}
-                  title="Ganti Avatar Random"
-                >
-                  <LuRefreshCw size={13} />
-                  <span>Ganti Avatar</span>
-                </button>
-              </div>
-              <div className="user-profile-row">
-                <div className="user-avatar-circle" onClick={handleRandomizeAvatar} title="Klik untuk ganti avatar">
-                  <RandomCyberAvatar variant={avatarVariant} />
-                </div>
-                <div className="user-profile-info">
-                  <strong>{user.displayName || (isGuest ? 'Mode Tamu' : 'Koder')}</strong>
-                  <small>{isGuest ? 'Progres disimpan lokal' : user.email}</small>
-                </div>
-              </div>
-              {isGuest ? (
-                <button className="btn-logout-account btn-login-switch" onClick={() => navigate('/auth')}>
-                  <LuLogOut size={15} />
-                  <span>Daftar / Masuk Akun</span>
-                </button>
-              ) : (
-                <button className="btn-logout-account" onClick={handleLogout}>
-                  <LuLogOut size={15} />
-                  <span>Keluar (Log Out)</span>
-                </button>
-              )}
-            </div>
-          )}
+          {user && renderAccountCard()}
         </aside>
       )}
 
       {/* ===== MOBILE BOTTOM NAV ===== */}
       <nav className="duo-mobile-bottom-nav">
-        <button className={`m-nav-item ${activeNav === 'belajar' ? 'active' : ''}`} onClick={() => { setActiveNav('belajar'); playSoundCue('click') }}>
-          <LuHouse size={22} /><span>Belajar</span>
+        <button className={`m-nav-item ${activeNav === 'belajar' ? 'active' : ''}`} onClick={() => goNav('belajar')}>
+          <LuHouse size={21} /><span>Belajar</span>
         </button>
-        <button className={`m-nav-item ${activeNav === 'visualizer' ? 'active' : ''}`} onClick={() => { setActiveNav('visualizer'); playSoundCue('click') }}>
-          <LuHeadphones size={22} /><span>Visual</span>
+        <button className={`m-nav-item ${activeNav === 'visualizer' ? 'active' : ''}`} onClick={() => goNav('visualizer')}>
+          <LuHeadphones size={21} /><span>Visual</span>
         </button>
-        <button className={`m-nav-item ${activeNav === 'playground' ? 'active' : ''}`} onClick={() => { setActiveNav('playground'); playSoundCue('click') }}>
-          <LuTerminal size={22} /><span>Playground</span>
+        <button className={`m-nav-item ${activeNav === 'playground' ? 'active' : ''}`} onClick={() => goNav('playground')}>
+          <LuTerminal size={21} /><span>Kode</span>
         </button>
-        <button className={`m-nav-item ${activeNav === 'papan-skor' ? 'active' : ''}`} onClick={() => { setActiveNav('papan-skor'); playSoundCue('click') }}>
-          <LuShield size={22} /><span>Skor</span>
+        <button className={`m-nav-item ${activeNav === 'papan-skor' ? 'active' : ''}`} onClick={() => goNav('papan-skor')}>
+          <LuShield size={21} /><span>Skor</span>
         </button>
-        <button className={`m-nav-item ${activeNav === 'misi' ? 'active' : ''}`} onClick={() => { setActiveNav('misi'); playSoundCue('click') }}>
-          <LuScroll size={22} /><span>Misi</span>
+        <button className={`m-nav-item ${activeNav === 'misi' ? 'active' : ''}`} onClick={() => goNav('misi')}>
+          <LuScroll size={21} /><span>Misi</span>
+        </button>
+        <button className={`m-nav-item ${activeNav === 'akun' ? 'active' : ''}`} onClick={() => goNav('akun')}>
+          <LuUser size={21} /><span>Akun</span>
         </button>
       </nav>
 
@@ -955,7 +1017,7 @@ function DuolingoLearn() {
               await handleCompleteModule(modXP)
               // Mark module as completed in Firestore
               if (user && activeModuleData?.module?.id) {
-                const newCompleted = [...(userData?.completedModules || []), activeModuleData.module.id]
+                const newCompleted = Array.from(new Set([...(userData?.completedModules || []), activeModuleData.module.id]))
                 await updateUserData({ completedModules: newCompleted })
               }
               setActiveQuizNode(null)
@@ -982,10 +1044,10 @@ const AVATAR_PALETTES = [
   { bg: '#4c1d95', accent: '#a855f7', visor: '#fbbf24' },
 ]
 
-function RandomCyberAvatar({ variant = 0 }) {
+function RandomCyberAvatar({ variant = 0, size = 40 }) {
   const p = AVATAR_PALETTES[variant % AVATAR_PALETTES.length]
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="20" fill={p.bg} />
       <circle cx="20" cy="17" r="7" fill={p.accent} />
       <rect x="14" y="14" width="12" height="4.5" rx="2.2" fill={p.visor} />

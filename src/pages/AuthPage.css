@@ -321,3 +321,40 @@
     left: 1rem;
   }
 }
+
+
+/* ===== BUGFIX mobile: tombol kembali menimpa kartu, zoom iOS ===== */
+.auth-root {
+  min-height: 100dvh;
+}
+
+@media (max-width: 640px) {
+  .auth-root {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 0.9rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    gap: 1rem;
+  }
+
+  .auth-page-topbar {
+    position: relative;
+    top: auto;
+    left: auto;
+  }
+
+  .auth-card {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1.75rem 1.15rem;
+    border-radius: 18px;
+  }
+
+  .auth-field input {
+    font-size: 16px; /* cegah auto-zoom iOS saat fokus input */
+  }
+
+  .auth-footer-note {
+    font-size: 0.75rem;
+  }
+}

@@ -21,5 +21,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+auth.languageCode = 'id'
 export const googleProvider = new GoogleAuthProvider()
+// Selalu tampilkan pemilih akun Google (hindari auto-login akun yang salah)
+googleProvider.setCustomParameters({ prompt: 'select_account' })
 export default app

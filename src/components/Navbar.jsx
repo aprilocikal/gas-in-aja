@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ArrowUpRight } from 'lucide-react'
 import { LuCode } from 'react-icons/lu'
 import KinetixLogo from './KinetixLogo'
 import './Navbar.css'
@@ -23,6 +23,12 @@ function Navbar() {
     setIsOpen(false)
   }, [location])
 
+  // Kunci scroll halaman saat menu HP terbuka
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   const navLinks = [
     { path: '/', label: 'Beranda' },
     { path: '/alur-belajar', label: 'Alur Belajar' },
@@ -33,7 +39,7 @@ function Navbar() {
 
   return (
     <motion.nav
-      className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}
+      className={`navbar ${scrolled ? 'navbar-scrolled' : ''} ${isOpen ? 'navbar-open' : ''}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -83,25 +89,40 @@ function Navbar() {
         {isOpen && (
           <motion.div
             className="navbar-mobile"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
           >
-            <div className="mobile-links-container">
-              {navLinks.map((link) => (
-                <Link
+            <nav className="mobile-links-container">
+              {navLinks.map((link, i) => (
+                <motion.div
                   key={link.path}
-                  to={link.path}
-                  className={`navbar-mobile-link ${location.pathname === link.path ? 'active' : ''}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.04 * i, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {link.label}
-                </Link>
+                  <Link
+                    to={link.path}
+                    className={`navbar-mobile-link ${location.pathname === link.path ? 'active' : ''}`}
+                  >
+                    <span className="mobile-link-index">0{i + 1}</span>
+                    <span className="mobile-link-label">{link.label}</span>
+                    <ArrowUpRight size={18} className="mobile-link-arrow" />
+                  </Link>
+                </motion.div>
               ))}
-              <Link to="/onboarding" className="btn btn-primary btn-mobile-cta">
+            </nav>
+            <motion.div
+              className="mobile-menu-footer"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.25 }}
+            >
+              <Link to="/onboarding" className="btn-mobile-cta">
                 Mulai Belajar
               </Link>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

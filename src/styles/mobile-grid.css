@@ -1,0 +1,303 @@
+/* =====================================================================
+   MOBILE 2 KOLOM — semua grid kartu yang di HP jadi 1 kolom panjang
+   dibuat jadi 2 sisi (kiri-kanan). Dimuat paling akhir di main.jsx.
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* ---------- Grid 2 kolom ---------- */
+  body .flashcards-grid,
+  body .tier-cards-row,
+  body .how-steps,
+  body .features-grid,
+  body .materi-grid,
+  body .tips-grid,
+  body .values-grid,
+  body .tech-grid,
+  body .competition-details,
+  body .rubrik-grid,
+  body .languages-cards-grid,
+  body .picker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    max-width: 100%;
+  }
+
+  /* Kartu terakhir yang ganjil -> full lebar biar rapi */
+  body .flashcards-grid > :last-child:nth-child(odd),
+  body .tier-cards-row > :last-child:nth-child(odd),
+  body .how-steps > :last-child:nth-child(odd),
+  body .materi-grid > :last-child:nth-child(odd),
+  body .tips-grid > :last-child:nth-child(odd),
+  body .values-grid > :last-child:nth-child(odd),
+  body .tech-grid > :last-child:nth-child(odd),
+  body .competition-details > :last-child:nth-child(odd),
+  body .rubrik-grid > :last-child:nth-child(odd),
+  body .languages-cards-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Matikan efek hover "naik" di HP (sentuhan bikin kartu loncat) */
+  body .tier-showcase-card:hover,
+  body .how-step:hover,
+  body .materi-card:hover,
+  body .tip-card:hover,
+  body .value-card:hover,
+  body .rubrik-card:hover,
+  body .flashcard-scene:hover .flashcard-front {
+    transform: none;
+  }
+
+  /* ---------- Flashcard tingkatan bahasa (Beranda) ---------- */
+  body .flashcard-scene {
+    min-height: 380px;
+  }
+  body .flashcards-grid > :last-child:nth-child(odd) {
+    min-height: 290px;
+  }
+  body .flashcard-face {
+    padding: 0.95rem 0.85rem;
+    border-radius: 16px;
+  }
+  body .card-top-action {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.7rem;
+  }
+  body .card-tier-pill {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+  }
+  body .btn-flip-hint {
+    font-size: 0.62rem;
+    padding: 2px 6px;
+  }
+  body .card-icon-hero {
+    margin-bottom: 0.4rem;
+  }
+  body .card-icon-hero svg {
+    width: 22px;
+    height: 22px;
+  }
+  body .card-face-title {
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+  body .card-languages-tag {
+    font-size: 0.66rem;
+    margin-bottom: 0.55rem;
+  }
+  body .card-front-desc {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    margin-bottom: 0.6rem;
+  }
+  /* Poin-poin disembunyikan di kartu kecil (detail ada di sisi belakang) */
+  body .flashcards-grid > :not(:last-child:nth-child(odd)) .card-front-bullets {
+    display: none;
+  }
+  body .card-front-bullets li {
+    font-size: 0.72rem;
+  }
+  body .card-bottom-click-cta span {
+    font-size: 0.62rem;
+  }
+  body .code-snippet-box {
+    font-size: 0.64rem;
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+  body .card-back-explanation {
+    font-size: 0.7rem;
+    margin-bottom: 0.6rem;
+  }
+  body .btn-card-explore {
+    font-size: 0.72rem;
+    padding: 0.55rem 0.6rem;
+  }
+
+  /* ---------- Tier showcase card ---------- */
+  body .tier-showcase-card {
+    padding: 1.1rem 0.95rem;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ---------- Cara kerja (how-steps) ---------- */
+  body .how-step {
+    padding: 1.2rem 0.95rem;
+    border-radius: var(--radius-lg);
+  }
+  body .how-step-num {
+    font-size: 2.2rem;
+    right: 0.8rem;
+    top: 0.6rem;
+  }
+  body .how-step-icon {
+    font-size: 1.7rem;
+    margin-bottom: 0.7rem;
+  }
+  body .how-step h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+  body .how-step p {
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+
+  /* ---------- Katalog materi ---------- */
+  body .materi-card {
+    padding: 1rem 0.85rem;
+  }
+  body .materi-card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  body .materi-icon-wrap {
+    width: 40px;
+    height: 40px;
+  }
+  body .materi-icon {
+    font-size: 1.2rem;
+  }
+  body .materi-badges {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  body .materi-badge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+  body .materi-title {
+    font-size: 0.95rem;
+  }
+  body .materi-desc {
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+  body .materi-footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  body .materi-meta {
+    font-size: 0.7rem;
+  }
+  body .materi-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  /* ---------- Tips simulasi ---------- */
+  body .tip-card {
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.95rem 0.85rem;
+    font-size: 0.78rem;
+  }
+
+  /* ---------- Tentang ---------- */
+  body .value-card {
+    padding: 1.2rem 0.95rem;
+    border-radius: var(--radius-lg);
+  }
+  body .value-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.8rem;
+  }
+  body .value-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+  body .value-card p {
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+  body .tech-card {
+    padding: 1.1rem 0.75rem;
+  }
+  body .tech-icon {
+    font-size: 1.8rem;
+  }
+  body .tech-card strong {
+    font-size: 0.9rem;
+  }
+  body .tech-card small {
+    font-size: 0.72rem;
+  }
+  body .detail-item {
+    padding: 0.85rem 0.75rem;
+  }
+  body .rubrik-card {
+    padding: 1rem 0.85rem;
+  }
+  body .rubrik-card-top h3 {
+    font-size: 0.95rem;
+  }
+  body .rubrik-bobot,
+  body .rubrik-level {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.45rem;
+  }
+  body .rubrik-desc-box,
+  body .rubrik-impl-box {
+    padding: 0.7rem;
+  }
+  body .rubrik-desc-box strong,
+  body .rubrik-impl-box strong {
+    font-size: 0.62rem;
+  }
+  body .rubrik-desc-box p,
+  body .rubrik-impl-box p {
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  /* ---------- Halaman belajar: katalog & pemilih bahasa ---------- */
+  body .duo-lang-card {
+    padding: 0.95rem 0.8rem;
+  }
+  body .duo-lang-card h3 {
+    font-size: 0.95rem;
+  }
+  body .duo-lang-card p {
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+  body .duo-lang-top {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  body .lang-tag-pill {
+    font-size: 0.58rem;
+  }
+  body .btn-select-lang {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.72rem;
+  }
+  body .picker-lang-item {
+    padding: 0.65rem 0.6rem;
+    gap: 0.5rem;
+  }
+  body .picker-lang-info strong {
+    font-size: 0.82rem;
+  }
+  body .picker-lang-info small {
+    font-size: 0.65rem;
+  }
+}
+
+/* Layar sangat sempit (< 340px): kembali 1 kolom supaya tetap terbaca */
+@media (max-width: 339px) {
+  body .flashcards-grid,
+  body .tier-cards-row,
+  body .how-steps,
+  body .features-grid,
+  body .materi-grid,
+  body .values-grid,
+  body .rubrik-grid,
+  body .languages-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
