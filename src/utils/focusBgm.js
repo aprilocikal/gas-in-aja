@@ -1,46 +1,43 @@
-// Bright, Warm Kalimba & Acoustic Piano Study BGM Engine for Kinetix Code Quizzes
-// Cheerful, relaxing C-major pentatonic study loop (no dark drones or spooky pads)
+// Groovy Lo-Fi Chillhop Study Beat Engine (Web Audio API)
+// Real multi-track beat: soft kick, warm snare, swung hi-hats, jazzy Rhodes chords, bass & catchy lead
 
 const BGM_STORAGE_KEY = 'kinetix_bgm_enabled'
 
-// Bright uplifting progression in C Major: C -> G -> Am -> F (friendly middle-high register)
-// Each bar has 8 eighth-note slots (~92 BPM => 0.325s per eighth note, 2.6s per bar)
-const STEP_SEC = 0.325
-const STEPS_PER_BAR = 8
+// 82 BPM => 16th note = 0.183s (with subtle lo-fi swing on off-beat 16ths)
+const SIXTEENTH_SEC = 60 / 82 / 4
+const STEPS_PER_BAR = 16
 
-const STUDY_BARS = [
-  // Bar 1: C major (bright & welcoming)
+// Classic chillhop 4-bar chord loop: Fmaj7 -> Em7 -> Dm7 -> Cmaj9
+const LOFI_BARS = [
   {
-    bass: 261.63, // C4
-    chord: [329.63, 392.0], // E4, G4
-    melody: [523.25, 0, 659.25, 783.99, 659.25, 0, 587.33, 523.25], // C5 . E5 G5 E5 . D5 C5
+    bass: [174.61, 174.61, 130.81], // F3, F3, C3
+    chord: [261.63, 329.63, 392.0, 440.0], // C4 E4 G4 A4 (Fmaj7 voicing)
+    lead: { 0: 659.25, 3: 587.33, 6: 523.25, 10: 659.25, 14: 783.99 },
   },
-  // Bar 2: G major (open & cheerful)
   {
-    bass: 196.0, // G3
-    chord: [293.66, 392.0], // D4, G4
-    melody: [587.33, 0, 783.99, 659.25, 587.33, 0, 493.88, 587.33], // D5 . G5 E5 D5 . B4 D5
+    bass: [164.81, 164.81, 196.0], // E3, E3, G3
+    chord: [246.94, 293.66, 392.0, 493.88], // B3 D4 G4 B4 (Em7 voicing)
+    lead: { 0: 783.99, 4: 659.25, 7: 587.33, 11: 523.25, 14: 587.33 },
   },
-  // Bar 3: A minor (warm & thoughtful, still bright)
   {
-    bass: 220.0, // A3
-    chord: [329.63, 440.0], // E4, A4
-    melody: [523.25, 0, 659.25, 880.0, 783.99, 0, 659.25, 523.25], // C5 . E5 A5 G5 . E5 C5
+    bass: [146.83, 146.83, 164.81], // D3, D3, E3
+    chord: [261.63, 293.66, 349.23, 440.0], // C4 D4 F4 A4 (Dm7 voicing)
+    lead: { 0: 523.25, 3: 587.33, 6: 659.25, 10: 587.33, 13: 523.25 },
   },
-  // Bar 4: F major -> gentle turnaround back to C
   {
-    bass: 174.61, // F3
-    chord: [261.63, 349.23], // C4, F4
-    melody: [659.25, 0, 587.33, 523.25, 587.33, 659.25, 587.33, 0], // E5 . D5 C5 D5 E5 D5 .
+    bass: [130.81, 130.81, 146.83], // C3, C3, D3
+    chord: [246.94, 293.66, 329.63, 392.0], // B3 D4 E4 G4 (Cmaj9 voicing)
+    lead: { 0: 659.25, 4: 523.25, 8: 587.33, 11: 659.25, 14: 523.25 },
   },
 ]
 
-const NORMAL_MASTER_GAIN = 0.13
-const DUCKED_MASTER_GAIN = 0.03
+const NORMAL_MASTER_GAIN = 0.17
+const DUCKED_MASTER_GAIN = 0.035
 
 let bgmCtx = null
 let masterGain = null
-let warmFilter = null
+let musicBus = null
+let noiseBuffer = null
 let loopTimer = null
 let stepIndex = 0
 let isPlaying = false
@@ -65,6 +62,18 @@ export function setFocusBgmEnabled(enabled) {
   }
 }
 
+function getNoiseBuffer(ctx) {
+  if (noiseBuffer) return noiseBuffer
+  const len = Math.floor(ctx.sampleRate * 0.25)
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < len; i += 1) {
+    data[i] = Math.random() * 2 - 1
+  }
+  noiseBuffer = buf
+  return buf
+}
+
 function ensureAudioGraph() {
   if (typeof window === 'undefined') return null
   if (!bgmCtx) {
@@ -72,16 +81,16 @@ function ensureAudioGraph() {
     if (!AudioContextClass) return null
     bgmCtx = new AudioContextClass()
 
-    // Bright, warm lowpass so kalimba/piano sparkles gently without harshness
-    warmFilter = bgmCtx.createBiquadFilter()
-    warmFilter.type = 'lowpass'
-    warmFilter.frequency.value = 3200
-    warmFilter.Q.value = 0.5
+    // Warm lo-fi tone shaping bus
+    musicBus = bgmCtx.createBiquadFilter()
+    musicBus.type = 'lowpass'
+    musicBus.frequency.value = 3400
+    musicBus.Q.value = 0.7
 
     masterGain = bgmCtx.createGain()
     masterGain.gain.value = 0.0001
 
-    warmFilter.connect(masterGain)
+    musicBus.connect(masterGain)
     masterGain.connect(bgmCtx.destination)
   }
   if (bgmCtx.state === 'suspended') {
@@ -90,78 +99,193 @@ function ensureAudioGraph() {
   return bgmCtx
 }
 
-// Crisp, friendly kalimba / electric-piano pluck (fast attack, clean acoustic decay)
-function playKalimbaNote(ctx, freq, startTime, duration = 0.75, peak = 0.14) {
-  // Fundamental sine
-  const osc1 = ctx.createOscillator()
-  const g1 = ctx.createGain()
-  osc1.type = 'sine'
-  osc1.frequency.setValueAtTime(freq, startTime)
-  g1.gain.setValueAtTime(0.0001, startTime)
-  g1.gain.linearRampToValueAtTime(peak, startTime + 0.012)
-  g1.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
-  osc1.connect(g1)
-  g1.connect(warmFilter)
-  osc1.start(startTime)
-  osc1.stop(startTime + duration + 0.03)
+// 1. Soft punchy lo-fi kick drum
+function playKick(ctx, t, vel = 0.55) {
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(128, t)
+  osc.frequency.exponentialRampToValueAtTime(46, t + 0.085)
 
-  // Gentle octave overtone for bright wooden bell warmth
-  const osc2 = ctx.createOscillator()
-  const g2 = ctx.createGain()
-  osc2.type = 'triangle'
-  osc2.frequency.setValueAtTime(freq * 2, startTime)
-  g2.gain.setValueAtTime(0.0001, startTime)
-  g2.gain.linearRampToValueAtTime(peak * 0.18, startTime + 0.008)
-  g2.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.45)
-  osc2.connect(g2)
-  g2.connect(warmFilter)
-  osc2.start(startTime)
-  osc2.stop(startTime + duration * 0.48 + 0.02)
+  gain.gain.setValueAtTime(0.001, t)
+  gain.gain.linearRampToValueAtTime(vel, t + 0.006)
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+
+  osc.connect(gain)
+  gain.connect(masterGain)
+  osc.start(t)
+  osc.stop(t + 0.24)
 }
 
-// Soft acoustic guitar/piano bass pluck on downbeats
-function playWarmBassPluck(ctx, freq, startTime, duration = 0.9, peak = 0.16) {
+// 2. Warm brushed lo-fi snare / rimshot
+function playSnare(ctx, t, vel = 0.24) {
+  const src = ctx.createBufferSource()
+  src.buffer = getNoiseBuffer(ctx)
+
+  const bp = ctx.createBiquadFilter()
+  bp.type = 'bandpass'
+  bp.frequency.value = 1850
+  bp.Q.value = 1.1
+
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.001, t)
+  gain.gain.linearRampToValueAtTime(vel, t + 0.005)
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14)
+
+  src.connect(bp)
+  bp.connect(gain)
+  gain.connect(masterGain)
+  src.start(t)
+  src.stop(t + 0.16)
+
+  // Subtle wooden body tap
+  const body = ctx.createOscillator()
+  const bg = ctx.createGain()
+  body.type = 'triangle'
+  body.frequency.setValueAtTime(210, t)
+  body.frequency.exponentialRampToValueAtTime(135, t + 0.05)
+  bg.gain.setValueAtTime(vel * 0.45, t)
+  bg.gain.exponentialRampToValueAtTime(0.001, t + 0.07)
+  body.connect(bg)
+  bg.connect(masterGain)
+  body.start(t)
+  body.stop(t + 0.08)
+}
+
+// 3. Soft crisp hi-hat tick
+function playHat(ctx, t, vel = 0.08, open = false) {
+  const src = ctx.createBufferSource()
+  src.buffer = getNoiseBuffer(ctx)
+
+  const hp = ctx.createBiquadFilter()
+  hp.type = 'highpass'
+  hp.frequency.value = 6500
+
+  const dur = open ? 0.11 : 0.04
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.001, t)
+  gain.gain.linearRampToValueAtTime(vel, t + 0.003)
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur)
+
+  src.connect(hp)
+  hp.connect(gain)
+  gain.connect(masterGain)
+  src.start(t)
+  src.stop(t + dur + 0.01)
+}
+
+// 4. Warm Rhodes electric-piano chord stab
+function playRhodesChord(ctx, notes, t, dur = 1.35, peak = 0.095) {
+  notes.forEach((freq, idx) => {
+    const start = t + idx * 0.018
+    const osc = ctx.createOscillator()
+    const oscBell = ctx.createOscillator()
+    const g = ctx.createGain()
+    const gb = ctx.createGain()
+
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, start)
+    oscBell.type = 'triangle'
+    oscBell.frequency.setValueAtTime(freq * 2, start)
+    // Tiny warm chorus detune
+    oscBell.detune.setValueAtTime(idx % 2 === 0 ? 4 : -4, start)
+
+    g.gain.setValueAtTime(0.0001, start)
+    g.gain.linearRampToValueAtTime(peak, start + 0.018)
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur)
+
+    gb.gain.setValueAtTime(0.0001, start)
+    gb.gain.linearRampToValueAtTime(peak * 0.16, start + 0.01)
+    gb.gain.exponentialRampToValueAtTime(0.0001, start + dur * 0.35)
+
+    osc.connect(g)
+    g.connect(musicBus)
+    oscBell.connect(gb)
+    gb.connect(musicBus)
+
+    osc.start(start)
+    osc.stop(start + dur + 0.04)
+    oscBell.start(start)
+    oscBell.stop(start + dur * 0.4 + 0.04)
+  })
+}
+
+// 5. Groovy rounded chillhop bass note
+function playBass(ctx, freq, t, dur = 0.45, peak = 0.24) {
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
   osc.type = 'triangle'
-  osc.frequency.setValueAtTime(freq, startTime)
-  gain.gain.setValueAtTime(0.0001, startTime)
-  gain.gain.linearRampToValueAtTime(peak, startTime + 0.018)
-  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+  osc.frequency.setValueAtTime(freq, t)
+
+  gain.gain.setValueAtTime(0.0001, t)
+  gain.gain.linearRampToValueAtTime(peak, t + 0.015)
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+
   osc.connect(gain)
-  gain.connect(warmFilter)
-  osc.start(startTime)
-  osc.stop(startTime + duration + 0.03)
+  gain.connect(musicBus)
+  osc.start(t)
+  osc.stop(t + dur + 0.03)
+}
+
+// 6. Catchy soft electric-piano / pluck lead melody
+function playLead(ctx, freq, t, dur = 0.48, peak = 0.115) {
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(freq, t)
+
+  gain.gain.setValueAtTime(0.0001, t)
+  gain.gain.linearRampToValueAtTime(peak, t + 0.012)
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+
+  osc.connect(gain)
+  gain.connect(musicBus)
+  osc.start(t)
+  osc.stop(t + dur + 0.03)
 }
 
 function scheduleStep() {
-  if (!isPlaying || !bgmCtx || !warmFilter) return
+  if (!isPlaying || !bgmCtx || !musicBus) return
   if (bgmCtx.state === 'suspended') {
     bgmCtx.resume().catch(() => {})
   }
 
-  const now = bgmCtx.currentTime + 0.03
-  const barIdx = Math.floor(stepIndex / STEPS_PER_BAR) % STUDY_BARS.length
-  const subStep = stepIndex % STEPS_PER_BAR
-  const bar = STUDY_BARS[barIdx]
+  const barIdx = Math.floor(stepIndex / STEPS_PER_BAR) % LOFI_BARS.length
+  const step = stepIndex % STEPS_PER_BAR
+  const bar = LOFI_BARS[barIdx]
   stepIndex += 1
 
-  // Beat 1 & Beat 3: soft warm bass + light strummed chord
-  if (subStep === 0) {
-    playWarmBassPluck(bgmCtx, bar.bass, now, 1.05, 0.16)
-    bar.chord.forEach((f, idx) => {
-      playKalimbaNote(bgmCtx, f, now + idx * 0.03, 0.95, 0.085)
-    })
-  } else if (subStep === 4) {
-    playWarmBassPluck(bgmCtx, bar.bass, now, 0.75, 0.11)
-    playKalimbaNote(bgmCtx, bar.chord[1], now + 0.02, 0.7, 0.065)
+  // Subtle lo-fi swing on odd 16th notes
+  const swingDelay = step % 2 === 1 ? SIXTEENTH_SEC * 0.18 : 0
+  const t = bgmCtx.currentTime + 0.03 + swingDelay
+
+  // Drum groove (classic chillhop boom-bap pattern)
+  if (step === 0 || step === 7 || step === 10) {
+    playKick(bgmCtx, t, step === 0 ? 0.56 : 0.42)
+  }
+  if (step === 4 || step === 12) {
+    playSnare(bgmCtx, t, 0.24)
+  }
+  if (step % 2 === 0) {
+    playHat(bgmCtx, t, step % 4 === 0 ? 0.075 : 0.048, step === 14)
   }
 
-  // Cheerful kalimba melody notes
-  const noteFreq = bar.melody[subStep]
-  if (noteFreq) {
-    const accent = subStep === 0 || subStep === 4 ? 0.135 : 0.105
-    playKalimbaNote(bgmCtx, noteFreq, now, 0.72, accent)
+  // Rhodes chords: main hit on beat 1, warm syncopated bounce on step 10
+  if (step === 0) {
+    playRhodesChord(bgmCtx, bar.chord, t, 1.55, 0.095)
+  } else if (step === 10) {
+    playRhodesChord(bgmCtx, bar.chord, t, 0.85, 0.068)
+  }
+
+  // Bouncy bassline locked to kick
+  if (step === 0) playBass(bgmCtx, bar.bass[0], t, 0.65, 0.24)
+  else if (step === 7) playBass(bgmCtx, bar.bass[1], t, 0.4, 0.19)
+  else if (step === 10) playBass(bgmCtx, bar.bass[2], t, 0.5, 0.2)
+
+  // Catchy melody hook
+  const leadFreq = bar.lead[step]
+  if (leadFreq) {
+    playLead(bgmCtx, leadFreq, t, 0.46, 0.11)
   }
 }
 
@@ -178,14 +302,14 @@ export function startFocusBgm() {
     isPlaying = true
     stepIndex = 0
     scheduleStep()
-    loopTimer = setInterval(scheduleStep, STEP_SEC * 1000)
+    loopTimer = setInterval(scheduleStep, SIXTEENTH_SEC * 1000)
   }
 
   const now = ctx.currentTime
   const target = isDucked ? DUCKED_MASTER_GAIN : NORMAL_MASTER_GAIN
   masterGain.gain.cancelScheduledValues(now)
   masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now)
-  masterGain.gain.linearRampToValueAtTime(target, now + 0.65)
+  masterGain.gain.linearRampToValueAtTime(target, now + 0.5)
 }
 
 export function setFocusBgmDucked(duck) {
@@ -209,6 +333,6 @@ export function stopFocusBgm() {
     const now = bgmCtx.currentTime
     masterGain.gain.cancelScheduledValues(now)
     masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now)
-    masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.35)
+    masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.3)
   }
 }
