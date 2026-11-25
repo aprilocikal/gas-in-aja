@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   LuZap,
   LuPlay,
@@ -8,8 +9,10 @@ import {
   LuArrowRight,
   LuFlag,
   LuTrophy,
+  LuGift,
 } from 'react-icons/lu'
 import { playSoundCue } from './AccessibilityToolbar'
+import XPRewardsShop from './XPRewardsShop'
 import './CheckpointMissions.css'
 
 export default function CheckpointMissions({
@@ -21,7 +24,12 @@ export default function CheckpointMissions({
   claimedMap = {},
   onClaimReward,
   onNavigateTab,
+  initialSubTab = 'misi',
+  userName = 'Koder',
+  langName = 'Python',
+  onRewardsUpdated,
 }) {
+  const [subTab, setSubTab] = useState(initialSubTab)
   const missions = [
     {
       id: 'cp-xp',
@@ -98,11 +106,41 @@ export default function CheckpointMissions({
     <div className="duo-subview-wrap missions-hub">
       <div className="subview-header">
         <h2>
-          <LuFlag size={22} className="icon-inline" /> Jalur Misi Checkpoint
+          <LuFlag size={22} className="icon-inline" /> Misi &amp; Toko Tukar XP
         </h2>
-        <p>Selesaikan misi nyata untuk membuka checkpoint hadiah XP dan Gems!</p>
+        <p>Kumpulkan XP dari misi harian, lalu tukarkan menjadi Power-Up Kuis, Gelar Profil, &amp; Sertifikat Digital!</p>
       </div>
 
+      <div className="missions-subtabs" role="tablist" aria-label="Pilih Misi atau Toko XP">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={subTab === 'misi'}
+          className={`missions-subtab-btn ${subTab === 'misi' ? 'active' : ''}`}
+          onClick={() => { setSubTab('misi'); playSoundCue('toggle') }}
+        >
+          <LuFlag size={15} /> Misi Harian
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={subTab === 'toko'}
+          className={`missions-subtab-btn ${subTab === 'toko' ? 'active' : ''}`}
+          onClick={() => { setSubTab('toko'); playSoundCue('toggle') }}
+        >
+          <LuGift size={15} /> Tukar XP &amp; Hadiah
+        </button>
+      </div>
+
+      {subTab === 'toko' ? (
+        <XPRewardsShop
+          totalXP={xp}
+          userName={userName}
+          langName={langName}
+          onRewardsUpdated={onRewardsUpdated}
+        />
+      ) : (
+        <>
       {/* Visual Checkpoint Milestone Track */}
       <div className="cp-track-card">
         <div className="cp-track-top">
@@ -220,6 +258,8 @@ export default function CheckpointMissions({
           )
         })}
       </div>
+        </>
+      )}
     </div>
   )
 }

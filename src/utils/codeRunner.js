@@ -768,7 +768,23 @@ function runCStyle(code, langId) {
       if (ch === ')') paren = Math.max(0, paren - 1)
 
       if (ch === '{' && paren === 0) {
-        const header = cur.trim()
+        const trimmedCur = cur.trim()
+        // Array initializer like `int arr[] = {5, 2, 8};` or `[]int{1, 2}` is NOT a code block
+        if (/=\s*$/.test(trimmedCur) || /\[\]\w*$/.test(trimmedCur)) {
+          let depth = 1
+          let j = i + 1
+          let lit = '{'
+          while (j < src.length && depth > 0) {
+            if (src[j] === '{') depth++
+            else if (src[j] === '}') depth--
+            lit += src[j]
+            j++
+          }
+          cur += lit
+          i = j
+          continue
+        }
+        const header = trimmedCur
         cur = ''
         const inner = parseBlock(src, i + 1)
         i = inner.nextIdx
@@ -895,6 +911,36 @@ function runCStyle(code, langId) {
       if (rustOut[1] === 'println') flushLine(fmt, true)
       else outputBuffer += fmt
       return
+    }
+
+    // Single-line if without braces: `if (cond) stmt`
+    const inlineIf = t.match(/^if\s*\(([^)]+)\)\s+([\s\S]+)$/)
+    if (inlineIf) {
+      if (evalExpression(inlineIf[1], env)) {
+        execSimpleStmt(inlineIf[2])
+      }
+      return
+    }
+
+    // Array declarations: `int arr[] = {5, 2, 8}`, `int[] arr = {5, 2}`, `std::vector<int> arr = {5, 2}`, `arr := []int{5, 2}`, `let mut arr = vec![5, 2]`
+    const arrDecl =
+      t.match(/^(?:(?:const|var|let\s+mut|let|int|float|double|long|String|string|std::vector<[^>]+>)\s+)?(?:\[\]\s*)?([a-zA-Z_]\w*)(?:\s*\[[^\]]*\])?\s*:?=\s*(?:\[\]\w*\s*\{([\s\S]*)\}|\{([\s\S]*)\}|vec!\s*\[([\s\S]*)\]|\[([\s\S]*)\])$/)
+    if (arrDecl) {
+      const name = arrDecl[1]
+      const rawItems = arrDecl[2] ?? arrDecl[3] ?? arrDecl[4] ?? arrDecl[5] ?? ''
+      env[name] = rawItems.trim() ? splitArgs(rawItems).map((x) => evalExpression(x, env)) : []
+      return
+    }
+
+    // Indexed array assignment: `arr[j] = arr[j + 1]`
+    const idxAssign = t.match(/^([a-zA-Z_]\w*)\[([^\]]+)\]\s*=\s*([\s\S]+)$/)
+    if (idxAssign) {
+      const arr = env[idxAssign[1]]
+      const idx = evalExpression(idxAssign[2], env)
+      if (Array.isArray(arr)) {
+        arr[idx] = evalExpression(idxAssign[3], env)
+        return
+      }
     }
 
     // Increment / decrement: i++, i--, ++i
@@ -1057,10 +1103,14 @@ function runCStyle(code, langId) {
 export function executeCode(langId, code) {
   const start = performance.now()
   let result
-  if (langId === 'javascript') result = runJavaScript(code)
-  else if (langId === 'brainfuck') result = runBrainfuck(code)
-  else if (langId === 'python') result = runPython(code)
-  else result = runCStyle(code, langId)
+  try {
+    if (langId === 'javascript') result = runJavaScript(code)
+    else if (langId === 'brainfuck') result = runBrainfuck(code)
+    else if (langId === 'python') result = runPython(code)
+    else result = runCStyle(code, langId)
+  } catch (err) {
+    result = { stdout: [], stderr: err?.message || 'Terjadi kesalahan saat mengeksekusi kode.' }
+  }
 
   const durationMs = Math.max(1, Math.round(performance.now() - start))
   return {

@@ -1,0 +1,392 @@
+.xp-shop-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.xp-balance-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  border-radius: 18px;
+  background: #12172a;
+  border: 1px solid rgba(129, 140, 248, 0.35);
+}
+
+.xp-balance-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #a5b4fc;
+}
+
+.xp-balance-val {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0.25rem 0 0.35rem;
+}
+
+.xp-balance-val strong {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.xp-total-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.xp-balance-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6ee7b7;
+}
+
+.xp-active-buffs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.xp-buff-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.buff-heart {
+  background: rgba(244, 63, 94, 0.16);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  color: #fda4af;
+}
+
+.buff-boost {
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  color: #c7d2fe;
+}
+
+.xp-shop-toast {
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid #10b981;
+  color: #a7f3d0;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.xp-shop-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.xp-shop-heading {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.xp-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.xp-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.1rem;
+  border-radius: 16px;
+  background: #0d111f;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.xp-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.xp-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.xp-item-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #171d34;
+  color: #a5b4fc;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.xp-item-card h4 {
+  margin: 0.2rem 0 0;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.xp-item-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.xp-stock-note {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.btn-xp-redeem {
+  margin-top: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0.58rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-xp-redeem.can-afford {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-xp-redeem.can-afford:hover {
+  background: #4338ca;
+}
+
+.btn-xp-redeem.locked {
+  background: #171c30;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #64748b;
+}
+
+/* Titles Grid */
+.xp-titles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.xp-title-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #0d111f;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.xp-title-card.is-equipped {
+  border-color: #6366f1;
+  background: #141930;
+}
+
+.xp-title-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.btn-xp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.44rem 0.8rem;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.btn-xp-title.is-equipped {
+  background: #059669;
+  color: #ffffff;
+}
+
+.btn-xp-title.is-owned {
+  background: #1c223c;
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  color: #c7d2fe;
+}
+
+.btn-xp-title.can-afford {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-xp-title.locked {
+  background: #161b2d;
+  color: #64748b;
+}
+
+/* Certificate Card */
+.xp-cert-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.2rem 1.35rem;
+  border-radius: 16px;
+  background: #101528;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.xp-cert-info {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex: 1;
+  min-width: 240px;
+}
+
+.xp-cert-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.xp-cert-info h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.xp-cert-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.btn-xp-cert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.68rem 1.15rem;
+  border-radius: 11px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-xp-cert.is-unlocked {
+  background: #059669;
+  color: #ffffff;
+}
+
+.btn-xp-cert.is-unlocked:hover {
+  background: #047857;
+}
+
+.btn-xp-cert.can-afford {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-xp-cert.locked {
+  background: #171c30;
+  color: #64748b;
+}
+
+/* Sub-tab Switcher inside CheckpointMissions */
+.missions-subtabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #0b0e1a;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  margin-bottom: 1.25rem;
+}
+
+.missions-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 9px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.missions-subtab-btn.active {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+@media (max-width: 820px) {
+  .xp-shop-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .xp-titles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-xp-cert {
+    width: 100%;
+  }
+}

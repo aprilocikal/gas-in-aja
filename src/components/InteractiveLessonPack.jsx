@@ -31,6 +31,7 @@ import {
   stopFocusBgm,
   setFocusBgmDucked,
 } from '../utils/focusBgm'
+import { consumeSessionPowerups } from '../utils/xpRewards'
 import './InteractiveLessonPack.css'
 
 const HINT_STORAGE_KEY = 'kinetix_hint_state'
@@ -100,8 +101,12 @@ export default function InteractiveLessonPack({
     [langId, unitId, moduleId, sessionId]
   )
 
+  const [sessionPowerups] = useState(() => consumeSessionPowerups())
+  const startingHearts = MAX_HEARTS + (sessionPowerups.extraHeartActive ? 1 : 0)
+  const xpMultiplier = sessionPowerups.xpBoostActive ? 2 : 1
+
   const [qIndex, setQIndex] = useState(0)
-  const [hearts, setHearts] = useState(MAX_HEARTS)
+  const [hearts, setHearts] = useState(startingHearts)
   const [failedReason, setFailedReason] = useState(null) // null | 'hearts'
   const isAdvancingRef = useRef(false)
   const [combo, setCombo] = useState(0)
@@ -398,13 +403,13 @@ export default function InteractiveLessonPack({
         }
         setIsFinished(true)
         playSoundCue('fanfare')
-        onComplete?.()
+        onComplete?.(xpMultiplier)
       } else {
         setIsFinished(true)
         playSoundCue('wrong')
       }
     }
-  }, [qIndex, questions.length, correctCount, hearts, hintState.tokens, onComplete])
+  }, [qIndex, questions.length, correctCount, hearts, hintState.tokens, onComplete, xpMultiplier])
 
   const handleSkip = () => {
     playSoundCue('click')
@@ -696,6 +701,12 @@ export default function InteractiveLessonPack({
             <span className="mission-type-pill">{getQuestionTypeTag(currentQ.type)}</span>
             <span className="mission-lang-pill">{langName}</span>
             {moduleTitle && <span className="mission-module-pill">{moduleTitle}</span>}
+            {sessionPowerups.xpBoostActive && (
+              <span className="mission-passing-pill">2X XP AKTIF</span>
+            )}
+            {sessionPowerups.extraHeartActive && (
+              <span className="mission-passing-pill">PERISAI +1 NYAWA</span>
+            )}
             <span className="mission-passing-pill">Min. Lulus {PASSING_GRADE}%</span>
             <span className="mission-cp-counter">
               Checkpoint {qIndex + 1} / {questions.length}

@@ -45,6 +45,7 @@ import CheckpointRoadmap from '../components/CheckpointRoadmap'
 import VideoLearningSection from '../components/VideoLearningSection'
 import { playSoundCue } from '../components/AccessibilityToolbar'
 import { useAuth } from '../contexts/AuthContext'
+import { loadRewardState, getActiveTitleMeta } from '../utils/xpRewards'
 import {
   getStreakData,
   recordDailyActivity,
@@ -115,6 +116,9 @@ function LearnHub() {
   const [showStreakModal, setShowStreakModal] = useState(false)
   const [activeNav, setActiveNav] = useState('belajar')
   const [prevNav, setPrevNav] = useState('belajar')
+  const [missionsSubTab, setMissionsSubTab] = useState('misi')
+  const [rewardState, setRewardState] = useState(() => loadRewardState())
+  const activeTitleMeta = getActiveTitleMeta(rewardState)
   const [activeUnitId, setActiveUnitId] = useState(1)
   const [activeQuizNode, setActiveQuizNode] = useState(null)
   const [activeModuleData, setActiveModuleData] = useState(null)
@@ -524,6 +528,14 @@ function LearnHub() {
                   <span className="companion-stat-line">
                     <LuZap size={12} className="icon-orange" /> {xp} XP
                   </span>
+                  {activeTitleMeta && (
+                    <span
+                      className="companion-title-badge"
+                      style={{ color: activeTitleMeta.color, borderColor: `${activeTitleMeta.color}44` }}
+                    >
+                      ★ {activeTitleMeta.label}
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -600,6 +612,16 @@ function LearnHub() {
                 />
               </div>
               <span className="xp-next-target">{100 - (xp % 100)} XP ke Level {Math.floor(xp / 100) + 2}</span>
+              <button
+                type="button"
+                className="btn-xp-shop-quick"
+                onClick={() => {
+                  setMissionsSubTab('toko')
+                  goNav('misi')
+                }}
+              >
+                Tukar XP →
+              </button>
             </div>
 
             {/* MULTI-UNIT CYBER CHECKPOINT ROADMAP */}
@@ -775,9 +797,10 @@ function LearnHub() {
           />
         )}
 
-        {/* VIEW F: CHECKPOINT MISSIONS */}
+        {/* VIEW F: CHECKPOINT MISSIONS & XP STORE */}
         {activeNav === 'misi' && (
           <CheckpointMissions
+            key={missionsSubTab}
             xp={xp}
             visualizerRuns={dailyStats.visualizerRuns}
             playgroundRuns={dailyStats.playgroundRuns}
@@ -786,6 +809,10 @@ function LearnHub() {
             claimedMap={dailyStats.claimed}
             onClaimReward={handleClaimMissionReward}
             onNavigateTab={goNav}
+            initialSubTab={missionsSubTab}
+            userName={user?.displayName || (isGuest ? 'Tamu (Guest)' : 'Koder')}
+            langName={currentLang.name}
+            onRewardsUpdated={setRewardState}
           />
         )}
 
@@ -1076,8 +1103,8 @@ function LearnHub() {
               setActiveQuizNode(null)
               goNav('visualizer')
             }}
-            onComplete={async () => {
-              const modXP = activeModuleData?.module?.xpReward || 30
+            onComplete={async (xpMult = 1) => {
+              const modXP = (activeModuleData?.module?.xpReward || 30) * (Number(xpMult) || 1)
               await handleCompleteModule(modXP)
               if (user && activeModuleData?.module?.id) {
                 const newCompleted = Array.from(

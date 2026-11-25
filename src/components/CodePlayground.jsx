@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   LuTerminal,
   LuPlay,
@@ -8,13 +8,18 @@ import {
   LuTrash2,
   LuCode,
   LuSparkles,
+  LuWandSparkles,
 } from 'react-icons/lu'
 import {
   PLAYGROUND_LANGUAGES,
   getTemplateForLang,
   executeCode,
 } from '../utils/codeRunner'
-import { getWordBeforeCaret, getMatchingSnippets } from '../utils/editorSnippets'
+import {
+  LANGUAGE_SNIPPETS,
+  getWordBeforeCaret,
+  getMatchingSnippets,
+} from '../utils/editorSnippets'
 import { playSoundCue } from './AccessibilityToolbar'
 import './CodePlayground.css'
 
@@ -24,6 +29,98 @@ const AUTO_PAIRS = {
   '{': '}',
   '"': '"',
   "'": "'",
+}
+
+const KEYWORDS_RE =
+  /\b(if|elif|else|for|while|return|break|continue|def|class|import|from|in|range|and|or|not|True|False|None|const|let|var|function|async|await|int|float|double|char|void|long|auto|public|static|String|package|func|fn|mut|struct|include|using|namespace|std)\b/g
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function highlightCode(source, langId) {
+  const lines = source.split('\n')
+  const commentChar = langId === 'python' ? '#' : langId === 'brainfuck' ? ';' : '//'
+
+  return lines
+    .map((line) => {
+      // Split comment outside quotes
+      let quote = null
+      let commentIdx = -1
+      for (let i = 0; i < line.length; i += 1) {
+        const ch = line[i]
+        if (quote) {
+          if (ch === quote && line[i - 1] !== '\\') quote = null
+        } else if (ch === '"' || ch === "'" || ch === '`') {
+          quote = ch
+        } else if (line.startsWith(commentChar, i)) {
+          commentIdx = i
+          break
+        }
+      }
+
+      const codePart = commentIdx >= 0 ? line.slice(0, commentIdx) : line
+      const commentPart = commentIdx >= 0 ? line.slice(commentIdx) : ''
+
+      // Tokenize strings so we don't highlight keywords inside strings
+      const tokens = []
+      const strRe = /(["'`])(?:\\.|[^\\])*?\1/g
+      let last = 0
+      let m
+      while ((m = strRe.exec(codePart)) !== null) {
+        if (m.index > last) tokens.push({ type: 'code', text: codePart.slice(last, m.index) })
+        tokens.push({ type: 'str', text: m[0] })
+        last = m.index + m[0].length
+      }
+      if (last < codePart.length) tokens.push({ type: 'code', text: codePart.slice(last) })
+
+      const highlightedCode = tokens
+        .map((tok) => {
+          if (tok.type === 'str') return `<span class="hl-str">${escapeHtml(tok.text)}</span>`
+          let html = escapeHtml(tok.text)
+          html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="hl-num">$1</span>')
+          html = html.replace(KEYWORDS_RE, '<span class="hl-kw">$1</span>')
+          html = html.replace(
+            /\b(print|printf|println|println!|cout|console|log|len|sum|min|max|Math|System|fmt)(?=\b|\()/g,
+            '<span class="hl-fn">$1</span>'
+          )
+          return html
+        })
+        .join('')
+
+      const highlightedComment = commentPart
+        ? `<span class="hl-cmt">${escapeHtml(commentPart)}</span>`
+        : ''
+
+      return highlightedCode + highlightedComment
+    })
+    .join('\n')
+}
+
+function autoFormatCode(source, langId) {
+  if (langId === 'python' || langId === 'brainfuck') return source
+  const unit = langId === 'javascript' ? '  ' : '    '
+  let depth = 0
+  return source
+    .split('\n')
+    .map((raw) => {
+      const t = raw.trim()
+      if (!t) return ''
+      if (t.startsWith('}')) depth = Math.max(0, depth - 1)
+      const out = unit.repeat(depth) + t
+      const opens = (t.match(/\{/g) || []).length
+      const closes = (t.match(/\}/g) || []).length
+      if (!t.startsWith('}')) {
+        depth = Math.max(0, depth + opens - closes)
+      } else {
+        depth = Math.max(0, depth + opens - (closes - 1))
+      }
+      return out
+    })
+    .join('\n')
 }
 
 export default function CodePlayground({ selectedLangId = 'python', onCodeRun }) {
@@ -42,8 +139,12 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
 
   const textareaRef = useRef(null)
   const gutterRef = useRef(null)
+  const highlightRef = useRef(null)
+  const consoleRef = useRef(null)
 
   const indentUnit = editorLang === 'javascript' ? '  ' : '    '
+  const quickSnippets = (LANGUAGE_SNIPPETS[editorLang] || []).slice(0, 5)
+  const highlightedHtml = useMemo(() => highlightCode(code, editorLang), [code, editorLang])
 
   useEffect(() => {
     const next = getTemplateForLang(selectedLangId, 'hello')
@@ -87,6 +188,15 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
     setHasRun(true)
     playSoundCue(res.stderr ? 'wrong' : 'success')
     onCodeRun?.()
+    requestAnimationFrame(() => {
+      consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+  }
+
+  const handleFormat = () => {
+    const formatted = autoFormatCode(code, editorLang)
+    setCode(formatted)
+    playSoundCue('toggle')
   }
 
   const handleReset = () => {
@@ -110,9 +220,13 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
     }
   }
 
-  const syncGutterScroll = () => {
-    if (textareaRef.current && gutterRef.current) {
-      gutterRef.current.scrollTop = textareaRef.current.scrollTop
+  const syncScroll = () => {
+    const ta = textareaRef.current
+    if (!ta) return
+    if (gutterRef.current) gutterRef.current.scrollTop = ta.scrollTop
+    if (highlightRef.current) {
+      highlightRef.current.scrollTop = ta.scrollTop
+      highlightRef.current.scrollLeft = ta.scrollLeft
     }
   }
 
@@ -122,6 +236,7 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
         textareaRef.current.focus()
         textareaRef.current.selectionStart = textareaRef.current.selectionEnd = pos
         updateCursorPosition(textareaRef.current, false)
+        syncScroll()
       }
     })
   }
@@ -141,13 +256,12 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
     }
   }
 
-  const applySnippet = (snippet) => {
+  const applySnippet = (snippet, replaceWord = true) => {
     const el = textareaRef.current
-    if (!el || !snippet) return
-    const caret = el.selectionStart || 0
-    const { start } = getWordBeforeCaret(code, caret)
+    if (!snippet) return
+    const caret = el ? el.selectionStart || 0 : code.length
+    const start = replaceWord ? getWordBeforeCaret(code, caret).start : caret
 
-    // Match current line's leading indentation for multi-line snippets
     const lineStart = code.lastIndexOf('\n', start - 1) + 1
     const baseIndent = (code.slice(lineStart, start).match(/^\s*/) || [''])[0]
     const indentedBody = snippet.body
@@ -179,11 +293,36 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       return
     }
 
-    // Autocomplete popup keyboard navigation
+    // Ctrl/Cmd + / -> Toggle comment on current line
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault()
+      const token = editorLang === 'python' ? '# ' : '// '
+      const lineStart = code.lastIndexOf('\n', start - 1) + 1
+      const lineEndIdx = code.indexOf('\n', start)
+      const lineEnd = lineEndIdx === -1 ? code.length : lineEndIdx
+      const lineText = code.slice(lineStart, lineEnd)
+      const trimmed = lineText.trimStart()
+      const indent = lineText.slice(0, lineText.length - trimmed.length)
+      let nextLine
+      let delta
+      if (trimmed.startsWith(token.trim())) {
+        const cut = trimmed.startsWith(token) ? token.length : token.trim().length
+        nextLine = indent + trimmed.slice(cut)
+        delta = -cut
+      } else {
+        nextLine = indent + token + trimmed
+        delta = token.length
+      }
+      setCode(code.slice(0, lineStart) + nextLine + code.slice(lineEnd))
+      setCaret(Math.max(lineStart, start + delta))
+      return
+    }
+
+    // Autocomplete popup: Tab OR Enter accepts snippet
     if (suggestions.length > 0) {
-      if (e.key === 'Tab') {
+      if (e.key === 'Tab' || e.key === 'Enter') {
         e.preventDefault()
-        applySnippet(suggestions[activeSuggestionIdx] || suggestions[0])
+        applySnippet(suggestions[activeSuggestionIdx] || suggestions[0], true)
         return
       }
       if (e.key === 'ArrowDown') {
@@ -223,7 +362,7 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       return
     }
 
-    // Tab -> Insert language-appropriate indentation
+    // Tab -> Insert indentation
     if (e.key === 'Tab') {
       e.preventDefault()
       const nextVal = code.slice(0, start) + indentUnit + code.slice(end)
@@ -232,7 +371,7 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       return
     }
 
-    // Smart Auto-Indent on Enter (handles `if ...:` in Python, `{` in C/JS/Java/Go/Rust, and `{|}` expansion)
+    // Smart Auto-Indent on Enter
     if (e.key === 'Enter') {
       e.preventDefault()
       setSuggestions([])
@@ -242,7 +381,6 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       const trimmedBefore = currentLineBefore.trimEnd()
       const charAfter = code[end] || ''
 
-      // Expand `{|}` into cleanly indented 3-line block
       if (trimmedBefore.endsWith('{') && charAfter === '}') {
         const insert = `\n${baseIndent}${indentUnit}\n${baseIndent}`
         const nextVal = code.slice(0, start) + insert + code.slice(end)
@@ -251,7 +389,6 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
         return
       }
 
-      // Auto-indent after `:` (Python if/for/while/def/else/elif) or `{` (C/C++/JS/Java/Go/Rust)
       const needsExtraIndent =
         (editorLang === 'python' && trimmedBefore.endsWith(':')) ||
         (editorLang !== 'python' && trimmedBefore.endsWith('{'))
@@ -268,7 +405,6 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       const closeChar = AUTO_PAIRS[e.key]
       const nextChar = code[end] || ''
 
-      // If typing closing quote and cursor is already right before it, just step over
       if ((e.key === '"' || e.key === "'") && start === end && nextChar === e.key) {
         e.preventDefault()
         setCaret(start + 1)
@@ -283,14 +419,12 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
       return
     }
 
-    // Step over closing `)` / `]` / `}` if already present
     if ((e.key === ')' || e.key === ']' || e.key === '}') && start === end && code[start] === e.key) {
       e.preventDefault()
       setCaret(start + 1)
       return
     }
 
-    // Backspace deletes empty auto-closed pair
     if (e.key === 'Backspace' && start === end && start > 0) {
       const prevChar = code[start - 1]
       const nextChar = code[start]
@@ -310,10 +444,10 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
     <div className="duo-subview-wrap playground-view">
       <div className="subview-header">
         <h2>
-          <LuTerminal size={22} className="icon-inline" /> Code Playground
+          <LuTerminal size={22} className="icon-inline" /> Code Playground IDE
         </h2>
         <p>
-          Tulis algoritma dengan auto-indent &amp; Tab snippet (ketik <code>if</code>, <code>for</code>, <code>ifelse</code> lalu tekan <strong>Tab</strong>).
+          Syntax highlighting, auto-indent, <code>Ctrl+/</code> komentar, dan ketik <code>if</code> / <code>for</code> lalu tekan <strong>Tab</strong>.
         </p>
       </div>
 
@@ -339,6 +473,17 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
           </div>
 
           <div className="playground-toolbar-actions">
+            {editorLang !== 'python' && editorLang !== 'brainfuck' && (
+              <button
+                type="button"
+                className="btn-pg-ghost"
+                onClick={handleFormat}
+                title="Rapikan indentasi kode"
+              >
+                <LuWandSparkles size={14} />
+                <span>Rapikan</span>
+              </button>
+            )}
             <button
               type="button"
               className="btn-pg-ghost"
@@ -367,9 +512,9 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
           </div>
         </div>
 
-        {/* Preset Snippet Chips */}
+        {/* Preset & Quick Snippet Bar */}
         <div className="pg-presets-bar">
-          <span className="pg-presets-label">Contoh Cepat:</span>
+          <span className="pg-presets-label">Contoh:</span>
           {[
             { id: 'hello', label: 'Hello World' },
             { id: 'loop', label: 'Looping' },
@@ -384,13 +529,34 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
               {preset.label}
             </button>
           ))}
+
+          {quickSnippets.length > 0 && (
+            <>
+              <span className="pg-bar-divider" aria-hidden="true" />
+              <span className="pg-presets-label">Sisipkan:</span>
+              {quickSnippets.map((snip) => (
+                <button
+                  key={snip.trigger}
+                  type="button"
+                  className="pg-snip-chip"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    applySnippet(snip, false)
+                  }}
+                  title={`Sisipkan ${snip.desc}`}
+                >
+                  + {snip.trigger}
+                </button>
+              ))}
+            </>
+          )}
         </div>
 
         {/* IDE Autocomplete / Tab Snippet Bar */}
         {suggestions.length > 0 && (
           <div className="pg-autocomplete-bar" role="listbox" aria-label="Saran kode Tab">
             <span className="pg-ac-hint">
-              <LuSparkles size={12} /> Tekan <kbd>Tab</kbd>:
+              <LuSparkles size={12} /> <kbd>Tab</kbd> / <kbd>Enter</kbd>:
             </span>
             <div className="pg-ac-items">
               {suggestions.map((sug, idx) => (
@@ -402,7 +568,7 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
                   className={`pg-ac-pill ${idx === activeSuggestionIdx ? 'active' : ''}`}
                   onMouseDown={(e) => {
                     e.preventDefault()
-                    applySnippet(sug)
+                    applySnippet(sug, true)
                   }}
                 >
                   <code>{sug.label}</code>
@@ -413,7 +579,7 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
           </div>
         )}
 
-        {/* Editor Workspace */}
+        {/* Editor Workspace with Live Syntax Highlighting Layer */}
         <div className="playground-editor-wrap">
           <div ref={gutterRef} className="editor-line-numbers" aria-hidden="true">
             {Array.from({ length: lineCount }, (_, idx) => (
@@ -425,44 +591,51 @@ export default function CodePlayground({ selectedLangId = 'python', onCodeRun })
               </span>
             ))}
           </div>
-          <textarea
-            ref={textareaRef}
-            className="playground-editor"
-            value={code}
-            onChange={(e) => {
-              setCode(e.target.value)
-              updateCursorPosition(e.target, true)
-            }}
-            onScroll={syncGutterScroll}
-            onClick={(e) => updateCursorPosition(e.target, false)}
-            onKeyUp={(e) => {
-              if (!['ArrowUp', 'ArrowDown', 'Escape', 'Tab'].includes(e.key)) {
-                updateCursorPosition(e.target, e.key.length === 1 || e.key === 'Backspace')
-              }
-            }}
-            onKeyDown={handleKeyDown}
-            onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-            spellCheck={false}
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            wrap="off"
-            placeholder="// Tulis kode kamu di sini... (ketik 'if' lalu tekan Tab)"
-          />
+
+          <div className="pg-editor-stack">
+            <pre
+              ref={highlightRef}
+              className="playground-highlight-layer"
+              aria-hidden="true"
+              dangerouslySetInnerHTML={{ __html: `${highlightedHtml}\n` }}
+            />
+            <textarea
+              ref={textareaRef}
+              className="playground-editor playground-editor-transparent"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value)
+                updateCursorPosition(e.target, true)
+              }}
+              onScroll={syncScroll}
+              onClick={(e) => updateCursorPosition(e.target, false)}
+              onKeyUp={(e) => {
+                if (!['ArrowUp', 'ArrowDown', 'Escape', 'Tab', 'Enter'].includes(e.key)) {
+                  updateCursorPosition(e.target, e.key.length === 1 || e.key === 'Backspace')
+                }
+              }}
+              onKeyDown={handleKeyDown}
+              onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+              spellCheck={false}
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              wrap="off"
+              placeholder="// Tulis kode kamu di sini... (ketik 'if' lalu tekan Tab)"
+            />
+          </div>
         </div>
 
         {/* Status Bar */}
         <div className="pg-status-bar">
-          <span>
-            {langMeta.ext} • Auto-Indent &amp; Tab Snippet Aktif
-          </span>
+          <span>{langMeta.ext} • Syntax Highlight • Auto-Indent • Tab Snippet</span>
           <span>
             Ln {cursorPos.line}, Col {cursorPos.col} • {lineCount} baris
           </span>
         </div>
 
         {/* Live Output Console */}
-        <div className="playground-console">
+        <div ref={consoleRef} className="playground-console">
           <div className="console-header">
             <div className="console-dots-group">
               <span className="console-dot red" />
