@@ -5,6 +5,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   updateProfile,
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
@@ -25,15 +27,34 @@ export default function AuthPage({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Auto-redirect if already logged in
+  // Auto-redirect if already logged in or handle redirect result from Google
   useEffect(() => {
+    let mounted = true
     if (user && !user.isAnonymous) {
       if (onAuthSuccess) {
         onAuthSuccess(user)
       } else {
         navigate('/learn', { replace: true })
       }
+      return
     }
+
+    // Check redirect auth result (fixes infinite white popup)
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (mounted && result?.user) {
+          await handleFirestoreUser(result.user)
+          if (onAuthSuccess) onAuthSuccess(result.user)
+          else navigate('/learn', { replace: true })
+        }
+      })
+      .catch((err) => {
+        if (mounted && err && err.code !== 'auth/null-user') {
+          console.warn('Redirect result:', err)
+        }
+      })
+
+    return () => { mounted = false }
   }, [user, navigate, onAuthSuccess])
 
   const handleFirestoreUser = async (u) => {
@@ -125,18 +146,24 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  // Google Sign-In with auto account creation & login
+  // Google Sign-In: uses direct redirect to eliminate cross-origin popup freezing
   const handleGoogleLogin = async () => {
     setError('')
     setLoading(true)
     try {
-      const result = await signInWithPopup(auth, googleProvider)
-      await handleFirestoreUser(result.user)
-      if (onAuthSuccess) onAuthSuccess(result.user)
-      else navigate('/learn', { replace: true })
+      // Direct redirect bypasses Chrome third-party cookie/popup handler hang
+      await signInWithRedirect(auth, googleProvider)
     } catch (err) {
-      console.error('Google login error:', err)
-      setError(friendlyError(err.code || err.message))
+      console.warn('Redirect failed, trying popup:', err)
+      try {
+        const result = await signInWithPopup(auth, googleProvider)
+        await handleFirestoreUser(result.user)
+        if (onAuthSuccess) onAuthSuccess(result.user)
+        else navigate('/learn', { replace: true })
+      } catch (popErr) {
+        console.error('Google login error:', popErr)
+        setError(friendlyError(popErr.code || popErr.message))
+      }
     } finally {
       setLoading(false)
     }
