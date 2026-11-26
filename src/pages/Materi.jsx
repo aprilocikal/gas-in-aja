@@ -182,7 +182,7 @@ function Materi() {
             transition={{ delay: 0.08 }}
           >
             Katalog &amp; Flashcard Bahasa: <br />
-            <span className="gradient-text">Dari Low-Level Hingga Tersulit</span>
+            <span className="gradient-text">Dari Low Level Hingga Tersulit</span>
           </motion.h1>
 
           <motion.div

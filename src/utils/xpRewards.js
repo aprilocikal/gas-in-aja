@@ -48,6 +48,7 @@ export function loadRewardState() {
     bonusHearts: 0,
     xpBoostCount: 0,
     unlockedCert: false,
+    unlockedCerts: [],
   }
   try {
     const raw = localStorage.getItem(REWARDS_STORAGE_KEY)
@@ -60,6 +61,7 @@ export function loadRewardState() {
       bonusHearts: Math.max(0, Number(parsed.bonusHearts) || 0),
       xpBoostCount: Math.max(0, Number(parsed.xpBoostCount) || 0),
       unlockedCert: Boolean(parsed.unlockedCert),
+      unlockedCerts: Array.isArray(parsed.unlockedCerts) ? parsed.unlockedCerts : [],
     }
   } catch {
     return fallback
@@ -118,14 +120,11 @@ export function consumeSessionPowerups() {
 }
 
 /**
- * Generate & download a crisp PNG Certificate of Achievement using HTML5 Canvas
+ * Generate & download a clean, minimalist PNG Certificate using HTML5 Canvas
  */
 export function downloadCertificatePng({
   userName = 'Koder Kinetix',
   langName = 'Pemrograman',
-  xp = 0,
-  level = 1,
-  titleLabel = '',
 }) {
   const canvas = document.createElement('canvas')
   canvas.width = 1200
@@ -133,102 +132,148 @@ export function downloadCertificatePng({
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  // Deep obsidian background
-  ctx.fillStyle = '#0b0e1a'
-  ctx.fillRect(0, 0, 1200, 760)
-
-  // Subtle decorative border frame
-  ctx.strokeStyle = '#4f46e5'
-  ctx.lineWidth = 4
-  ctx.strokeRect(36, 36, 1128, 688)
-
-  ctx.strokeStyle = 'rgba(129, 140, 248, 0.3)'
-  ctx.lineWidth = 1.5
-  ctx.strokeRect(52, 52, 1096, 656)
-
-  // Top brand badge
-  ctx.fillStyle = '#4f46e5'
-  ctx.fillRect(510, 88, 180, 36)
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '800 15px Inter, system-ui, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('KINETIX CODE', 600, 111)
-
-  // Heading
-  ctx.fillStyle = '#a5b4fc'
-  ctx.font = '700 18px Inter, system-ui, sans-serif'
-  ctx.fillText('SERTIFIKAT PENCAPAIAN BELAJAR', 600, 178)
-
-  ctx.fillStyle = '#94a3b8'
-  ctx.font = '500 19px Inter, system-ui, sans-serif'
-  ctx.fillText('Diberikan dengan bangga kepada:', 600, 232)
-
-  // Recipient name
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '800 50px Inter, system-ui, sans-serif'
-  ctx.fillText(String(userName).slice(0, 30), 600, 306)
-
-  // Optional title pill
-  if (titleLabel) {
-    ctx.fillStyle = '#fbbf24'
-    ctx.font = '700 18px Inter, system-ui, sans-serif'
-    ctx.fillText(`★ ${titleLabel} ★`, 600, 348)
+  const drawRoundedRect = (x, y, w, h, r) => {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + w - r, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+    ctx.lineTo(x + w, y + h - r)
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+    ctx.lineTo(x + r, y + h)
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.closePath()
   }
 
-  // Divider
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)'
+  // Clean off-white paper background
+  ctx.fillStyle = '#fafafa'
+  ctx.fillRect(0, 0, 1200, 760)
+
+  // Subtle architectural left accent bar
+  ctx.fillStyle = '#7c3aed'
+  ctx.fillRect(0, 0, 10, 760)
+
+  // Single crisp hairline border
+  ctx.strokeStyle = '#e4e4e7'
   ctx.lineWidth = 1.5
+  ctx.strokeRect(48, 48, 1104, 664)
+
+  // ===== TOP-LEFT: Minimal label =====
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#71717a'
+  ctx.font = '600 14px Inter, system-ui, sans-serif'
+  ctx.fillText('SERTIFIKAT PENYELESAIAN', 104, 122)
+
+  // ===== TOP-RIGHT: Kinetix Code Logo (right-aligned to 1096) =====
+  const logoSize = 40
+  const logoGap = 12
+  ctx.font = '800 22px "Plus Jakarta Sans", Inter, system-ui, sans-serif'
+  const kinetixW = ctx.measureText('Kinetix ').width
+  const codeW = ctx.measureText('Code').width
+  const totalLogoW = logoSize + logoGap + kinetixW + codeW
+  const logoX = 1096 - totalLogoW
+  const logoY = 96
+
+  // Purple rounded square icon matching KinetixLogo.jsx
+  ctx.fillStyle = '#7c3aed'
+  drawRoundedRect(logoX, logoY, logoSize, logoSize, 10)
+  ctx.fill()
+
+  // White "K" (vertical bar + "<" bracket) scaled from 48x48 viewBox
+  const s = logoSize / 48
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 5 * s
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
   ctx.beginPath()
-  ctx.moveTo(260, 382)
-  ctx.lineTo(940, 382)
+  ctx.moveTo(logoX + 17 * s, logoY + 14 * s)
+  ctx.lineTo(logoX + 17 * s, logoY + 34 * s)
   ctx.stroke()
 
-  // Description
-  ctx.fillStyle = '#cbd5e1'
+  ctx.beginPath()
+  ctx.moveTo(logoX + 32 * s, logoY + 14 * s)
+  ctx.lineTo(logoX + 22 * s, logoY + 24 * s)
+  ctx.lineTo(logoX + 32 * s, logoY + 34 * s)
+  ctx.stroke()
+
+  // Wordmark next to icon
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#09090b'
+  ctx.fillText('Kinetix ', logoX + logoSize + logoGap, logoY + 28)
+  ctx.fillStyle = '#7c3aed'
+  ctx.fillText('Code', logoX + logoSize + logoGap + kinetixW, logoY + 28)
+
+  // ===== MAIN CONTENT (Left-aligned editorial) =====
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#71717a'
   ctx.font = '500 20px Inter, system-ui, sans-serif'
-  ctx.fillText(`Atas dedikasi dan capaian belajar pemrograman & algoritma interaktif`, 600, 434)
-  ctx.fillStyle = '#818cf8'
-  ctx.font = '700 22px Inter, system-ui, sans-serif'
-  ctx.fillText(`Fokus Jalur: ${langName}`, 600, 472)
+  ctx.fillText('Diberikan kepada', 104, 268)
 
-  // Stats boxes
-  const stats = [
-    { label: 'TOTAL XP', value: `${xp} XP` },
-    { label: 'LEVEL DICAPAI', value: `LVL ${level}` },
-    {
-      label: 'TANGGAL TERBIT',
-      value: new Date().toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-    },
-  ]
+  // Recipient Name (auto-fit font size if long)
+  const cleanName = String(userName || 'Koder Kinetix').trim().slice(0, 36)
+  let nameSize = 58
+  ctx.font = `800 ${nameSize}px "Plus Jakarta Sans", Inter, system-ui, sans-serif`
+  while (ctx.measureText(cleanName).width > 980 && nameSize > 34) {
+    nameSize -= 2
+    ctx.font = `800 ${nameSize}px "Plus Jakarta Sans", Inter, system-ui, sans-serif`
+  }
+  ctx.fillStyle = '#09090b'
+  ctx.fillText(cleanName, 104, 342)
 
-  stats.forEach((s, i) => {
-    const x = 210 + i * 280
-    ctx.fillStyle = '#13182b'
-    ctx.fillRect(x, 520, 220, 96)
-    ctx.strokeStyle = 'rgba(129, 140, 248, 0.3)'
-    ctx.lineWidth = 1.2
-    ctx.strokeRect(x, 520, 220, 96)
+  // Minimal short accent rule
+  ctx.fillStyle = '#7c3aed'
+  ctx.fillRect(104, 382, 72, 4)
 
-    ctx.fillStyle = '#94a3b8'
-    ctx.font = '700 13px Inter, system-ui, sans-serif'
-    ctx.fillText(s.label, x + 110, 552)
+  // Theme / Track
+  ctx.fillStyle = '#71717a'
+  ctx.font = '500 18px Inter, system-ui, sans-serif'
+  ctx.fillText('Tema Pembelajaran', 104, 444)
 
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '800 24px Inter, system-ui, sans-serif'
-    ctx.fillText(s.value, x + 110, 590)
+  ctx.fillStyle = '#18181b'
+  ctx.font = '700 32px "Plus Jakarta Sans", Inter, system-ui, sans-serif'
+  ctx.fillText(String(langName || 'Pemrograman'), 104, 488)
+
+  ctx.fillStyle = '#52525b'
+  ctx.font = '400 18px Inter, system-ui, sans-serif'
+  ctx.fillText(
+    'Telah menyelesaikan materi dan latihan interaktif pada jalur pembelajaran ini.',
+    104,
+    532
+  )
+
+  // ===== FOOTER =====
+  ctx.strokeStyle = '#e4e4e7'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(104, 616)
+  ctx.lineTo(1096, 616)
+  ctx.stroke()
+
+  const issuedDate = new Date().toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   })
 
-  // Footer verification line
-  ctx.fillStyle = '#64748b'
-  ctx.font = '600 14px Inter, system-ui, sans-serif'
-  ctx.fillText('Terverifikasi secara digital oleh Kinetix Code Learning Platform', 600, 672)
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#71717a'
+  ctx.font = '500 15px Inter, system-ui, sans-serif'
+  ctx.fillText(issuedDate, 104, 658)
+
+  ctx.textAlign = 'right'
+  ctx.fillStyle = '#a1a1aa'
+  ctx.font = '500 14px "Fira Code", monospace'
+  ctx.fillText('kinetixcode.vercel.app', 1096, 658)
+
+  const langSlug = String(langName || 'Pemrograman')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const nameSlug = cleanName.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')
 
   const link = document.createElement('a')
-  link.download = `Sertifikat-Kinetix-Code-${String(userName).replace(/\s+/g, '-')}.png`
+  link.download = `Sertifikat-Kinetix-${langSlug}-${nameSlug}.png`
   link.href = canvas.toDataURL('image/png')
   link.click()
 }

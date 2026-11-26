@@ -1,4 +1,34 @@
 /* =====================================================================
+   RESPONSIVE COPY — teks lengkap di desktop, ringkas to-the-point di HP
+   ===================================================================== */
+h1,
+h2,
+h3,
+.section-title,
+.hero-title {
+  text-wrap: balance;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.text-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .text-desktop {
+    display: none !important;
+  }
+  .text-mobile {
+    display: inline;
+  }
+  p.text-mobile,
+  div.text-mobile {
+    display: block;
+  }
+}
+
+/* =====================================================================
    MOBILE 2 KOLOM — semua grid kartu yang di HP jadi 1 kolom panjang
    dibuat jadi 2 sisi (kiri-kanan). Dimuat paling akhir di main.jsx.
    ===================================================================== */

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-function FeatureCard({ icon, title, description, delay = 0 }) {
+function FeatureCard({ icon, title, description, mobileDescription, delay = 0 }) {
   return (
     <motion.div
       className="feature-card"
@@ -11,7 +11,14 @@ function FeatureCard({ icon, title, description, delay = 0 }) {
     >
       <div className="feature-icon">{icon}</div>
       <h3 className="feature-title">{title}</h3>
-      <p className="feature-desc">{description}</p>
+      {mobileDescription ? (
+        <>
+          <p className="feature-desc text-desktop">{description}</p>
+          <p className="feature-desc text-mobile">{mobileDescription}</p>
+        </>
+      ) : (
+        <p className="feature-desc">{description}</p>
+      )}
       <div className="feature-shine" />
     </motion.div>
   )

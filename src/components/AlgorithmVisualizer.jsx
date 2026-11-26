@@ -1023,7 +1023,7 @@ function AlgorithmVisualizer({ onSimulate } = {}) {
       {selectedAlgo === 'pointers' && (
         <div className="memory-visualizer-wrap">
           <div className="memory-intro">
-            <h3>Visualisasi Manajemen Memori & Pointer (C / Low-Level)</h3>
+            <h3>Visualisasi Manajemen Memori & Pointer (C / Low Level)</h3>
             <p>
               Bahasa tingkat rendah seperti <strong>C</strong> dan <strong>Assembly</strong> berinteraksi langsung dengan alamat RAM fisik. Lihat bagaimana pointer bekerja di bawah kap mesin!
             </p>

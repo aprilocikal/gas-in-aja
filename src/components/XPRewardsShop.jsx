@@ -105,23 +105,22 @@ export default function XPRewardsShop({
     notify(`Selamat! Gelar "${title.label}" terbuka & langsung terpasang!`)
   }
 
+  const isCurrentCertUnlocked = state.unlockedCerts.includes(langName)
+
   const handleCertificate = () => {
-    if (state.unlockedCert) {
+    if (isCurrentCertUnlocked) {
       downloadCertificatePng({
         userName,
         langName,
-        xp: totalXP,
-        level,
-        titleLabel: activeTitleMeta?.label || '',
       })
       playSoundCue('success')
-      notify('Sertifikat PNG berhasil diunduh!')
+      notify(`Sertifikat ${langName} (PNG) berhasil diunduh!`)
       return
     }
 
     if (availableXP < CERTIFICATE_COST_XP) {
       playSoundCue('locked')
-      notify(`Butuh ${CERTIFICATE_COST_XP - availableXP} XP lagi untuk membuka sertifikat.`)
+      notify(`Butuh ${CERTIFICATE_COST_XP - availableXP} XP lagi untuk membuka sertifikat ${langName}.`)
       return
     }
 
@@ -129,17 +128,24 @@ export default function XPRewardsShop({
       ...state,
       spentXP: state.spentXP + CERTIFICATE_COST_XP,
       unlockedCert: true,
+      unlockedCerts: [...state.unlockedCerts, langName],
     }
     commitState(next)
     playSoundCue('fanfare')
     downloadCertificatePng({
       userName,
       langName,
-      xp: totalXP,
-      level,
-      titleLabel: activeTitleMeta?.label || '',
     })
-    notify('Sertifikat Digital Kinetix Code terbuka & otomatis terunduh!')
+    notify(`Sertifikat ${langName} terbuka & otomatis terunduh!`)
+  }
+
+  const handleDownloadSavedCert = (savedLang) => {
+    downloadCertificatePng({
+      userName,
+      langName: savedLang,
+    })
+    playSoundCue('success')
+    notify(`Sertifikat ${savedLang} (PNG) berhasil diunduh!`)
   }
 
   const getPowerupIcon = (id) => {
@@ -189,7 +195,7 @@ export default function XPRewardsShop({
 
       {/* Section 1: Quiz Power-Ups */}
       <div className="xp-shop-section">
-        <h3 className="xp-shop-heading">Power-Up Kuis Interaktif</h3>
+        <h3 className="xp-shop-heading">Power Up Kuis Interaktif</h3>
         <div className="xp-shop-grid">
           {POWERUP_CATALOG.map((item) => {
             const canAfford = availableXP >= item.cost
@@ -271,17 +277,17 @@ export default function XPRewardsShop({
               <LuAward size={26} />
             </div>
             <div>
-              <h4>Sertifikat Kompetensi Kinetix Code (PNG)</h4>
+              <h4>Sertifikat {langName} (PNG)</h4>
               <p>
-                Cetak sertifikat resmi dengan nama <strong>{userName}</strong>, jalur{' '}
-                <strong>{langName}</strong>, Level {level}, dan capaian {totalXP} XP untuk portofolio kuliahmu.
+                Unduh sertifikat simpel dengan nama <strong>{userName}</strong> dan tema{' '}
+                <strong>{langName}</strong>. Setiap bahasa punya sertifikat terpisah.
               </p>
             </div>
           </div>
           <button
             type="button"
             className={`btn-xp-cert ${
-              state.unlockedCert
+              isCurrentCertUnlocked
                 ? 'is-unlocked'
                 : availableXP >= CERTIFICATE_COST_XP
                 ? 'can-afford'
@@ -289,17 +295,36 @@ export default function XPRewardsShop({
             }`}
             onClick={handleCertificate}
           >
-            {state.unlockedCert ? (
+            {isCurrentCertUnlocked ? (
               <>
-                <LuDownload size={16} /> Unduh Sertifikat (PNG)
+                <LuDownload size={16} /> Unduh {langName} (PNG)
               </>
             ) : (
               <>
-                <LuZap size={15} /> Buka &amp; Unduh ({CERTIFICATE_COST_XP} XP)
+                <LuZap size={15} /> Buka {langName} ({CERTIFICATE_COST_XP} XP)
               </>
             )}
           </button>
         </div>
+
+        {state.unlockedCerts.length > 0 && (
+          <div className="xp-cert-owned-list">
+            <span className="xp-cert-owned-label">Sertifikat yang sudah dimiliki:</span>
+            <div className="xp-cert-owned-chips">
+              {state.unlockedCerts.map((savedLang) => (
+                <button
+                  key={savedLang}
+                  type="button"
+                  className="xp-cert-owned-chip"
+                  onClick={() => handleDownloadSavedCert(savedLang)}
+                >
+                  <LuDownload size={13} />
+                  <span>{savedLang}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

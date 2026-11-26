@@ -77,7 +77,7 @@ function Simulasi() {
             transition={{ delay: 0.1 }}
           >
             Visualisasi & Simulasi <br />
-            <span className="gradient-text">Eksekusi Kode Real-Time</span>
+            <span className="gradient-text">Eksekusi Kode Realtime</span>
           </motion.h1>
 
           <motion.p

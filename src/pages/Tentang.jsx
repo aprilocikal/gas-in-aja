@@ -13,59 +13,104 @@ import './Tentang.css'
 
 function Tentang() {
   const techStack = [
-    { name: 'React 19', icon: <LuAtom size={32} className="icon-orange" />, desc: 'Arsitektur komponen reaktif' },
-    { name: 'Vite', icon: <LuZap size={32} className="icon-orange" />, desc: 'Engine build berkecepatan tinggi' },
-    { name: 'Framer Motion', icon: <LuSparkles size={32} className="icon-orange" />, desc: 'Animasi mikro & interaksi halus' },
-    { name: 'HTML5 Canvas API', icon: <LuPalette size={32} className="icon-orange" />, desc: 'Render simulasi visual 60 FPS' },
-    { name: 'React Router', icon: <LuCompass size={32} className="icon-orange" />, desc: 'SPA Routing tanpa refresh' },
-    { name: 'Modern CSS3', icon: <LuCode size={32} className="icon-orange" />, desc: 'Custom dark obsidian design system' },
+    {
+      name: 'React 19',
+      icon: <LuAtom size={32} className="icon-orange" />,
+      desc: 'Arsitektur komponen reaktif',
+      mobileDesc: 'UI komponen reaktif',
+    },
+    {
+      name: 'Vite',
+      icon: <LuZap size={32} className="icon-orange" />,
+      desc: 'Engine build berkecepatan tinggi',
+      mobileDesc: 'Build cepat & ringan',
+    },
+    {
+      name: 'Framer Motion',
+      icon: <LuSparkles size={32} className="icon-orange" />,
+      desc: 'Animasi mikro & interaksi halus',
+      mobileDesc: 'Animasi halus',
+    },
+    {
+      name: 'HTML5 Canvas',
+      icon: <LuPalette size={32} className="icon-orange" />,
+      desc: 'Render simulasi visual 60 FPS',
+      mobileDesc: 'Simulasi 60 FPS',
+    },
+    {
+      name: 'React Router',
+      icon: <LuCompass size={32} className="icon-orange" />,
+      desc: 'SPA Routing tanpa refresh',
+      mobileDesc: 'Navigasi tanpa reload',
+    },
+    {
+      name: 'Modern CSS3',
+      icon: <LuCode size={32} className="icon-orange" />,
+      desc: 'Custom dark obsidian design system',
+      mobileDesc: 'Desain dark responsif',
+    },
   ]
 
   const pilarKualitas = [
     {
       kriteria: 'Visualisasi & Simulasi Nyata',
+      mobileKriteria: 'Visualisasi Nyata',
       bobot: 'Pilar 01',
       targetLevel: '60 FPS Real-Time',
       deskripsi:
         'Mengimplementasikan visualisasi eksekusi kode secara akurat dan konsisten di seluruh alur pembelajaran.',
+      mobileDeskripsi: 'Visualisasi eksekusi kode real-time dan akurat.',
       buktiImplementasi:
         'Kinetix Code menghadirkan visualisasi algoritma pengurutan & pencarian 60 FPS dengan sinkronisasi baris kode Python/C/JS, serta simulasi dereferensi pointer memori RAM fisik C & Assembly.',
+      mobileBukti: 'Sorting & search 60 FPS sinkron baris kode, plus simulasi pointer C & Assembly.',
     },
     {
       kriteria: 'Tujuan dan Dampak Positif',
+      mobileKriteria: 'Dampak Edukasi',
       bobot: 'Pilar 02',
       targetLevel: 'Edukasi Inklusif',
       deskripsi:
         'Menyelesaikan masalah pelajar dan mahasiswa dalam memahami konsep abstrak pemrograman melalui interaksi langsung.',
+      mobileDeskripsi: 'Bikin konsep coding abstrak jadi mudah dipahami.',
       buktiImplementasi:
         'Menghadirkan pendekatan gamifikasi belajar interaktif berbasis checkpoint & antarmuka visual modern agar belajar coding menjadi menyenangkan dan mudah dipahami.',
+      mobileBukti: 'Gamifikasi checkpoint & visual interaktif biar belajar lebih seru.',
     },
     {
       kriteria: 'Fungsi dan Konten Lengkap',
+      mobileKriteria: 'Konten Lengkap',
       bobot: 'Pilar 03',
       targetLevel: '12+ Bahasa & Sandbox',
       deskripsi:
         'Seluruh fungsi belajar utama berjalan langsung di browser dengan materi terstruktur dan latihan acak.',
+      mobileDeskripsi: 'Semua materi & latihan jalan langsung di browser.',
       buktiImplementasi:
         'Katalog 12+ bahasa pemrograman (Assembly x86, C, Python hingga Brainfuck), Playground eksekusi kode langsung, Peta Checkpoint (+XP, streak, misi harian), serta Catatan Benchmark Big-O.',
+      mobileBukti: '12+ bahasa, playground langsung, checkpoint XP, dan benchmark Big-O.',
     },
     {
       kriteria: 'Desain dan Aksesibilitas',
+      mobileKriteria: 'Aksesibilitas',
       bobot: 'Pilar 04',
       targetLevel: 'WCAG 2.1 AA Ready',
       deskripsi:
         'Desain konsisten, mudah dinavigasi di desktop maupun mobile, dan ramah beragam kebutuhan pengguna.',
+      mobileDeskripsi: 'Nyaman di laptop maupun HP untuk semua pengguna.',
       buktiImplementasi:
         'Desain dark-glass modern dengan aksen kontras tinggi (Cyan, Violet, Emerald, Orange), responsif di seluruh viewport, serta penyesuaian aksesibilitas dan efek audio sintetis.',
+      mobileBukti: 'Kontras tinggi, responsif semua layar, plus fitur aksesibilitas & audio.',
     },
     {
       kriteria: 'Kualitas Teknis dan Pengujian',
+      mobileKriteria: 'Kualitas Teknis',
       bobot: 'Pilar 05',
       targetLevel: 'Modern SPA Build',
       deskripsi:
         'Struktur kode terorganisir rapi dan teruji di berbagai perangkat serta ukuran layar.',
+      mobileDeskripsi: 'Kode rapi, cepat, dan stabil di berbagai perangkat.',
       buktiImplementasi:
         'Arsitektur React 19 + Vite zero build error, penanganan React ErrorBoundary anti blank screen, serta teruji responsif di perangkat Desktop, Tablet, dan Mobile.',
+      mobileBukti: 'React 19 + Vite tanpa error, ErrorBoundary, dan teruji di semua layar.',
     },
   ]
 
@@ -74,16 +119,19 @@ function Tentang() {
       icon: <Target size={24} />,
       title: 'Misi Nyata',
       desc: 'Membongkar mitos bahwa programming dan algoritma itu menakutkan, melalui visualisasi eksekusi kode interaktif dan gamifikasi yang seru.',
+      mobileDesc: 'Bikin algoritma tidak lagi menakutkan lewat visualisasi & gamifikasi.',
     },
     {
       icon: <Heart size={24} />,
       title: 'Spektrum Bahasa Lengkap',
       desc: 'Menghubungkan pemula dengan seluruh hierarki bahasa komputer: dari arsitektur CPU Assembly, alokasi memori C, kecerdasan Python, hingga logika esoterik Brainfuck.',
+      mobileDesc: 'Belajar lengkap dari Assembly, C, Python, sampai Brainfuck.',
     },
     {
       icon: <Lightbulb size={24} />,
       title: 'Standar Baru Edukasi Digital',
       desc: 'Menggabungkan pendekatan gamifikasi belajar interaktif dengan visualisasi komputasional modern untuk mencetak talenta digital unggul Indonesia.',
+      mobileDesc: 'Gabungkan gamifikasi & visualisasi modern untuk talenta digital.',
     },
   ]
 
@@ -105,7 +153,12 @@ function Tentang() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            Menggabungkan pendekatan gamifikasi belajar interaktif dengan keanggunan visualisasi komputasional modern untuk belajar programming.
+            <span className="text-desktop">
+              Menggabungkan pendekatan gamifikasi belajar interaktif dengan keanggunan visualisasi komputasional modern untuk belajar programming.
+            </span>
+            <span className="text-mobile">
+              Belajar programming lewat visualisasi nyata dan gamifikasi interaktif.
+            </span>
           </motion.p>
         </div>
       </section>
@@ -116,15 +169,25 @@ function Tentang() {
           <div className="about-intro glass-card">
             <div className="about-intro-content">
               <h2>Mengapa Kinetix Code Diciptakan?</h2>
-              <p>
-                Banyak pelajar dan mahasiswa mengalami kesulitan besar dalam memahami konsep abstrak programming dan algoritma (seperti Bubble Sort, pointer RAM, rekursi, dan asimtotik Big-O). Akibatnya, angka kegagalan dan kebosanan dalam mempelajari ilmu komputer cukup tinggi.
-              </p>
-              <p>
-                <strong>Kinetix Code</strong> hadir sebagai platform edukasi digital interaktif di mana siswa dapat melihat eksekusi baris kode secara nyata, mengamati penukaran elemen visual 60 FPS, memanipulasi pointer memori fisik C, serta menjelajahi spektrum bahasa mulai dari Assembly x86 hingga bahasa tersulit Brainfuck dan Malbolge!
-              </p>
-              <p>
-                Platform ini berkomitmen mendukung agenda <strong>SDG 4 (Quality Education)</strong> dengan membuka akses terbuka dan setara bagi siapa saja untuk menguasai keterampilan digital masa depan.
-              </p>
+              <div className="text-desktop">
+                <p>
+                  Banyak pelajar dan mahasiswa mengalami kesulitan besar dalam memahami konsep abstrak programming dan algoritma (seperti Bubble Sort, pointer RAM, rekursi, dan asimtotik Big-O). Akibatnya, angka kegagalan dan kebosanan dalam mempelajari ilmu komputer cukup tinggi.
+                </p>
+                <p>
+                  <strong>Kinetix Code</strong> hadir sebagai platform edukasi digital interaktif di mana siswa dapat melihat eksekusi baris kode secara nyata, mengamati penukaran elemen visual 60 FPS, memanipulasi pointer memori fisik C, serta menjelajahi spektrum bahasa mulai dari Assembly x86 hingga bahasa tersulit Brainfuck dan Malbolge!
+                </p>
+                <p>
+                  Platform ini berkomitmen mendukung agenda <strong>SDG 4 (Quality Education)</strong> dengan membuka akses terbuka dan setara bagi siapa saja untuk menguasai keterampilan digital masa depan.
+                </p>
+              </div>
+              <div className="text-mobile">
+                <p>
+                  Konsep seperti sorting, pointer RAM, dan rekursi sering terasa abstrak. <strong>Kinetix Code</strong> memvisualisasikan eksekusi kode 60 FPS langsung di browser — dari Assembly x86, C, Python, hingga Brainfuck.
+                </p>
+                <p>
+                  Mendukung <strong>SDG 4 (Quality Education)</strong> agar siapa saja bisa belajar coding secara terbuka dan setara.
+                </p>
+              </div>
             </div>
             <div className="about-intro-visual">
               <div className="intro-visual-card">
@@ -156,7 +219,8 @@ function Tentang() {
               >
                 <div className="value-icon">{val.icon}</div>
                 <h3>{val.title}</h3>
-                <p>{val.desc}</p>
+                <p className="text-desktop">{val.desc}</p>
+                <p className="text-mobile">{val.mobileDesc}</p>
               </motion.div>
             ))}
           </div>
@@ -170,7 +234,12 @@ function Tentang() {
             Modern <span className="gradient-text">Tech Stack</span>
           </h2>
           <p className="section-subtitle">
-            Kombinasi teknologi mutakhir untuk memastikan simulasi berjalan mulus 60 FPS pada perangkat apa pun.
+            <span className="text-desktop">
+              Kombinasi teknologi mutakhir untuk memastikan simulasi berjalan mulus 60 FPS pada perangkat apa pun.
+            </span>
+            <span className="text-mobile">
+              Teknologi modern untuk simulasi mulus 60 FPS di semua perangkat.
+            </span>
           </p>
           <div className="tech-grid">
             {techStack.map((tech, i) => (
@@ -185,7 +254,8 @@ function Tentang() {
               >
                 <span className="tech-icon">{tech.icon}</span>
                 <strong>{tech.name}</strong>
-                <small>{tech.desc}</small>
+                <small className="text-desktop">{tech.desc}</small>
+                <small className="text-mobile">{tech.mobileDesc}</small>
               </motion.div>
             ))}
           </div>
@@ -199,7 +269,12 @@ function Tentang() {
             Pilar Kualitas <span className="gradient-text">Platform</span>
           </h2>
           <p className="section-subtitle">
-            Arsitektur Kinetix Code dirancang untuk menghadirkan pengalaman belajar coding yang visual, interaktif, dan mudah diakses.
+            <span className="text-desktop">
+              Arsitektur Kinetix Code dirancang untuk menghadirkan pengalaman belajar coding yang visual, interaktif, dan mudah diakses.
+            </span>
+            <span className="text-mobile">
+              Standar inti Kinetix Code untuk belajar coding yang visual & interaktif.
+            </span>
           </p>
 
           <div className="rubrik-grid">
@@ -220,17 +295,28 @@ function Tentang() {
                       {item.targetLevel}
                     </span>
                   </div>
-                  <h3>{item.kriteria}</h3>
+                  <h3>
+                    <span className="text-desktop">{item.kriteria}</span>
+                    <span className="text-mobile">{item.mobileKriteria}</span>
+                  </h3>
                 </div>
 
                 <div className="rubrik-desc-box">
-                  <strong>Fokus Utama:</strong>
-                  <p>{item.deskripsi}</p>
+                  <strong>
+                    <span className="text-desktop">Fokus Utama:</span>
+                    <span className="text-mobile">Fokus:</span>
+                  </strong>
+                  <p className="text-desktop">{item.deskripsi}</p>
+                  <p className="text-mobile">{item.mobileDeskripsi}</p>
                 </div>
 
                 <div className="rubrik-impl-box">
-                  <strong>Implementasi pada Kinetix Code:</strong>
-                  <p>{item.buktiImplementasi}</p>
+                  <strong>
+                    <span className="text-desktop">Implementasi pada Kinetix Code:</span>
+                    <span className="text-mobile">Implementasi:</span>
+                  </strong>
+                  <p className="text-desktop">{item.buktiImplementasi}</p>
+                  <p className="text-mobile">{item.mobileBukti}</p>
                 </div>
               </motion.div>
             ))}

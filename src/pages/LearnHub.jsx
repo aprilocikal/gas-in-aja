@@ -725,7 +725,7 @@ function LearnHub() {
         {activeNav === 'visualizer' && (
           <div className="duo-subview-wrap">
             <div className="subview-header">
-              <h2>Visualizer Algoritma Real-Time</h2>
+              <h2>Visualizer Algoritma Realtime</h2>
               <p>Simulasi 60 FPS untuk {currentLang.name}.</p>
             </div>
             <AlgorithmVisualizer onSimulate={handleVisualizerRun} />

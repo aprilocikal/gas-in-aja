@@ -101,7 +101,7 @@ export default function RealtimeLeaderboard({
       <div className="subview-header lb-header-flex">
         <div>
           <h2>
-            <LuShield size={22} className="icon-inline" /> Papan Skor Real-Time
+            <LuShield size={22} className="icon-inline" /> Papan Skor Realtime
           </h2>
           <p>Peringkat disusun otomatis berdasarkan XP aktual secara dinamis.</p>
         </div>
