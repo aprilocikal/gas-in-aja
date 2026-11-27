@@ -20,7 +20,6 @@ import {
 } from 'react-icons/lu'
 import { FaLinkedin } from 'react-icons/fa'
 import QRCode from 'qrcode'
-import KinetixLogo from '../components/KinetixLogo'
 import {
   LINKEDIN_COMPANY_ID,
   LINKEDIN_COMPANY_URL,
@@ -88,10 +87,11 @@ export default function VerifyCertificate() {
         <div className="verify-top-bar">
           <Link to="/learn" className="verify-back-btn">
             <LuArrowLeft size={16} />
-            <span>Kembali ke Belajar</span>
+            <span>Kembali ke Lab Belajar</span>
           </Link>
-          <div className="verify-logo-badge">
-            <KinetixLogo size={28} showText={true} />
+          <div className="verify-header-pill">
+            <LuShieldCheck size={15} />
+            <span>Sistem Autentikasi Kredensial Resmi</span>
           </div>
         </div>
 
