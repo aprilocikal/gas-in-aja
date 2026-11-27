@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LuX,
@@ -125,6 +125,12 @@ export default function InteractiveLessonPack({
   const [availableChips, setAvailableChips] = useState([])
   const [selectedOption, setSelectedOption] = useState(null)
 
+  // Drag and drop state for flexible chip reordering & arbitrary position insertion
+  const [draggedChip, setDraggedChip] = useState(null) // { origin: 'pool' | 'placed', chip, index }
+  const [dragOverGapIndex, setDragOverGapIndex] = useState(null) // number | null
+  const [isOverPool, setIsOverPool] = useState(false)
+  const [insertionCaretIndex, setInsertionCaretIndex] = useState(null) // number | null (tap slot to insert)
+
   // Hint token & cooldown state
   const [hintState, setHintState] = useState(() => loadHintState())
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -230,6 +236,10 @@ export default function InteractiveLessonPack({
     setHintLockNotice('')
     isAdvancingRef.current = false
     setFocusBgmDucked(false)
+    setDraggedChip(null)
+    setDragOverGapIndex(null)
+    setInsertionCaretIndex(null)
+    setIsOverPool(false)
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel()
     }
@@ -245,14 +255,75 @@ export default function InteractiveLessonPack({
   )
 
   const handleChipPlace = useCallback(
-    (chip) => {
+    (chip, targetIndex = null) => {
       if (feedback !== null) return
       playSoundCue('chip')
       setAvailableChips((prev) => prev.filter((c) => c.id !== chip.id))
-      setSelectedChips((prev) => [...prev, chip])
+      setSelectedChips((prev) => {
+        const next = [...prev]
+        const insertAt =
+          targetIndex !== null && targetIndex >= 0 && targetIndex <= next.length
+            ? targetIndex
+            : insertionCaretIndex !== null && insertionCaretIndex >= 0 && insertionCaretIndex <= next.length
+            ? insertionCaretIndex
+            : next.length
+        next.splice(insertAt, 0, chip)
+        return next
+      })
+      if (insertionCaretIndex !== null) {
+        setInsertionCaretIndex((prev) => (prev !== null ? prev + 1 : null))
+      }
       if (hintedChipId === chip.id) setHintedChipId(null)
     },
-    [feedback, hintedChipId]
+    [feedback, hintedChipId, insertionCaretIndex]
+  )
+
+  const handleReorderChip = useCallback(
+    (fromIdx, toIdx) => {
+      if (feedback !== null) return
+      if (fromIdx === toIdx || fromIdx === toIdx - 1) return
+      playSoundCue('chip')
+      setSelectedChips((prev) => {
+        const next = [...prev]
+        const [moved] = next.splice(fromIdx, 1)
+        const adjustedToIdx = toIdx > fromIdx ? toIdx - 1 : toIdx
+        next.splice(adjustedToIdx, 0, moved)
+        return next
+      })
+    },
+    [feedback]
+  )
+
+  const handleDropOnGap = useCallback(
+    (gapIdx, e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setDragOverGapIndex(null)
+      if (!draggedChip || feedback !== null) return
+
+      if (draggedChip.origin === 'pool') {
+        handleChipPlace(draggedChip.chip, gapIdx)
+      } else if (draggedChip.origin === 'placed') {
+        handleReorderChip(draggedChip.index, gapIdx)
+      }
+      setDraggedChip(null)
+    },
+    [draggedChip, feedback, handleChipPlace, handleReorderChip]
+  )
+
+  const handleDropOnPool = useCallback(
+    (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsOverPool(false)
+      if (!draggedChip || feedback !== null) return
+
+      if (draggedChip.origin === 'placed') {
+        handleReturnChip(draggedChip.chip)
+      }
+      setDraggedChip(null)
+    },
+    [draggedChip, feedback]
   )
 
   const handleReturnChip = useCallback(
@@ -261,8 +332,11 @@ export default function InteractiveLessonPack({
       playSoundCue('unpop')
       setSelectedChips((prev) => prev.filter((c) => c.id !== chip.id))
       setAvailableChips((prev) => [...prev, chip])
+      if (insertionCaretIndex !== null) {
+        setInsertionCaretIndex(null)
+      }
     },
-    [feedback]
+    [feedback, insertionCaretIndex]
   )
 
   const handleUndoChip = () => {
@@ -275,6 +349,9 @@ export default function InteractiveLessonPack({
     playSoundCue('click')
     setSelectedChips([])
     setAvailableChips(currentQ.shuffledChips)
+    setInsertionCaretIndex(null)
+    setDraggedChip(null)
+    setDragOverGapIndex(null)
   }
 
   const handleUseHint = () => {
@@ -863,11 +940,26 @@ export default function InteractiveLessonPack({
             </div>
           )}
 
-          {/* TYPE A: CODE TOKEN BUILDER */}
+          {/* TYPE A: CODE TOKEN BUILDER (DRAG & DROP + FLEXIBLE INSERTION) */}
           {currentQ.type === 'word_bank' && (
             <div className="word-bank-workspace">
               <div className="builder-toolbar">
-                <span className="builder-label">Susunan Kode Kamu:</span>
+                <div className="builder-label-group">
+                  <span className="builder-label">Susunan Kode Kamu:</span>
+                  {insertionCaretIndex !== null && (
+                    <span className="builder-caret-indicator">
+                      Sisip di posisi #{insertionCaretIndex + 1}
+                      <button
+                        type="button"
+                        className="btn-clear-caret"
+                        onClick={() => setInsertionCaretIndex(null)}
+                        title="Batal sisip spesifik (tambah ke paling kanan)"
+                      >
+                        batal
+                      </button>
+                    </span>
+                  )}
+                </div>
                 <div className="builder-actions">
                   <button
                     type="button"
@@ -890,30 +982,97 @@ export default function InteractiveLessonPack({
                 </div>
               </div>
 
-              <div className={`answer-line-slot ${selectedChips.length > 0 ? 'has-tokens' : ''}`}>
+              <div
+                className={`answer-line-slot ${selectedChips.length > 0 ? 'has-tokens' : ''} ${
+                  draggedChip ? 'is-dragging-active' : ''
+                }`}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  if (draggedChip) {
+                    handleDropOnGap(selectedChips.length, e)
+                  }
+                }}
+              >
                 {selectedChips.length === 0 ? (
-                  <span className="placeholder-text">
-                    Ketuk potongan kode di bawah untuk merangkai sintaks...
-                  </span>
+                  <div
+                    className={`placeholder-drop-zone ${dragOverGapIndex === 0 ? 'gap-drag-hover' : ''}`}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setDragOverGapIndex(0)
+                    }}
+                    onDragLeave={() => setDragOverGapIndex(null)}
+                    onDrop={(e) => handleDropOnGap(0, e)}
+                  >
+                    <span className="placeholder-text">
+                      Tarik atau ketuk token di bawah untuk mulai merangkai sintaks...
+                    </span>
+                  </div>
                 ) : (
                   <div className="placed-chips-row">
-                    {selectedChips.map((chip) => (
-                      <button
-                        key={chip.id}
-                        type="button"
-                        className="word-chip chip-placed"
-                        onPointerDown={(e) => {
-                          if (e.button !== 0 || feedback !== null) return
-                          lastChipPointerTs.current = performance.now()
-                          handleReturnChip(chip)
-                        }}
-                        onClick={() => {
-                          if (performance.now() - lastChipPointerTs.current < 450) return
-                          handleReturnChip(chip)
-                        }}
-                      >
-                        {chip.text}
-                      </button>
+                    {/* Gap di posisi paling awal (index 0) */}
+                    <div
+                      className={`chip-drop-gap ${dragOverGapIndex === 0 ? 'gap-drag-hover' : ''} ${
+                        insertionCaretIndex === 0 ? 'gap-caret-active' : ''
+                      }`}
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        setDragOverGapIndex(0)
+                      }}
+                      onDragLeave={() => setDragOverGapIndex(null)}
+                      onDrop={(e) => handleDropOnGap(0, e)}
+                      onClick={() => setInsertionCaretIndex(insertionCaretIndex === 0 ? null : 0)}
+                      title="Klik atau tarik ke sini untuk menyisipkan di awal"
+                    >
+                      <span className="drop-indicator-bar" />
+                    </div>
+
+                    {selectedChips.map((chip, idx) => (
+                      <Fragment key={chip.id}>
+                        <div
+                          draggable={feedback === null}
+                          className={`word-chip chip-placed ${
+                            draggedChip?.chip?.id === chip.id ? 'is-being-dragged' : ''
+                          }`}
+                          onDragStart={(e) => {
+                            if (feedback !== null) return
+                            e.dataTransfer.setData('text/plain', chip.id)
+                            e.dataTransfer.effectAllowed = 'move'
+                            setDraggedChip({ origin: 'placed', chip, index: idx })
+                          }}
+                          onDragEnd={() => {
+                            setDraggedChip(null)
+                            setDragOverGapIndex(null)
+                            setIsOverPool(false)
+                          }}
+                          onClick={() => {
+                            if (feedback !== null) return
+                            handleReturnChip(chip)
+                          }}
+                          title="Tarik untuk pindah posisi atau klik untuk kembalikan"
+                        >
+                          <span className="chip-drag-handle">::</span>
+                          <span>{chip.text}</span>
+                        </div>
+
+                        {/* Gap setelah token ini (index idx + 1) */}
+                        <div
+                          className={`chip-drop-gap ${
+                            dragOverGapIndex === idx + 1 ? 'gap-drag-hover' : ''
+                          } ${insertionCaretIndex === idx + 1 ? 'gap-caret-active' : ''}`}
+                          onDragOver={(e) => {
+                            e.preventDefault()
+                            setDragOverGapIndex(idx + 1)
+                          }}
+                          onDragLeave={() => setDragOverGapIndex(null)}
+                          onDrop={(e) => handleDropOnGap(idx + 1, e)}
+                          onClick={() =>
+                            setInsertionCaretIndex(insertionCaretIndex === idx + 1 ? null : idx + 1)
+                          }
+                          title={`Klik atau tarik ke sini untuk menyisipkan di posisi #${idx + 2}`}
+                        >
+                          <span className="drop-indicator-bar" />
+                        </div>
+                      </Fragment>
                     ))}
                   </div>
                 )}
@@ -926,26 +1085,41 @@ export default function InteractiveLessonPack({
                 </div>
               )}
 
-              <div className="chips-pool-grid">
+              <div
+                className={`chips-pool-grid ${isOverPool ? 'pool-drag-over' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  if (draggedChip?.origin === 'placed') setIsOverPool(true)
+                }}
+                onDragLeave={() => setIsOverPool(false)}
+                onDrop={handleDropOnPool}
+              >
                 {availableChips.map((chip) => (
-                  <button
+                  <div
                     key={chip.id}
-                    type="button"
+                    draggable={feedback === null}
                     className={`word-chip chip-available ${
                       hintedChipId === chip.id ? 'chip-hint-highlight' : ''
-                    }`}
-                    onPointerDown={(e) => {
-                      if (e.button !== 0 || feedback !== null) return
-                      lastChipPointerTs.current = performance.now()
-                      handleChipPlace(chip)
+                    } ${draggedChip?.chip?.id === chip.id ? 'is-being-dragged' : ''}`}
+                    onDragStart={(e) => {
+                      if (feedback !== null) return
+                      e.dataTransfer.setData('text/plain', chip.id)
+                      e.dataTransfer.effectAllowed = 'copyMove'
+                      setDraggedChip({ origin: 'pool', chip, index: null })
+                    }}
+                    onDragEnd={() => {
+                      setDraggedChip(null)
+                      setDragOverGapIndex(null)
+                      setIsOverPool(false)
                     }}
                     onClick={() => {
-                      if (performance.now() - lastChipPointerTs.current < 450) return
+                      if (feedback !== null) return
                       handleChipPlace(chip)
                     }}
+                    title="Tarik ke posisi mana saja atau klik untuk pasang"
                   >
                     {chip.text}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

@@ -53,6 +53,7 @@ Mencakup bahasa yang langsung relevan bagi mahasiswa baru hingga eksplorasi ting
 * **Sistem Hint Strategis (3/3):** Tiga token bantuan dapat digunakan kapan saja tanpa jeda. Waktu tunggu isi ulang 60 detik hanya aktif setelah seluruh 3 token habis terpakai.
 * **Audio Antarmuka, Pembaca Soal & Backsound Fokus:** Dilengkapi efek suara lembut berbasis Web Audio API, tombol **Audio** yang membacakan teks soal via *Web Speech Synthesis*, serta musik pengantar ambient lo fi lembut yang otomatis mengecil saat soal dibacakan (dilengkapi tombol **BGM / Mute**).
 * **Papan Skor Real Time (Top 10) & Misi Harian:** Peringkat 10 besar tersusun otomatis berdasarkan XP aktual melalui Firebase Firestore dan dilengkapi misi harian.
+* **Benefit EXP Menjadi Sertifikat Digital & LinkedIn:** Seluruh perolehan EXP dari keberhasilan menuntaskan checkpoint dapat ditukarkan di tab Misi menjadi **Sertifikat Pencapaian Digital** resmi (PNG resolusi tinggi). Sertifikat memuat nama pembelajar serta bahasa pemrograman yang dituntaskan, diverifikasi secara otentik, dan siap dipajang langsung pada profil **LinkedIn** maupun portofolio karir koder.
 
 ## Arsitektur & Teknologi
 

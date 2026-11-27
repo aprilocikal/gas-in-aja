@@ -666,6 +666,41 @@
   cursor: not-allowed;
 }
 
+.builder-label-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.builder-caret-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  animation: pulse-border 1.5s infinite alternate;
+}
+
+.btn-clear-caret {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-clear-caret:hover {
+  color: #f43f5e;
+}
+
 .answer-line-slot {
   min-height: 72px;
   background: #0e1223;
@@ -674,11 +709,32 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 0.9rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .answer-line-slot.has-tokens {
   border-style: solid;
   border-color: #6366f1;
+}
+
+.answer-line-slot.is-dragging-active {
+  border-color: #38bdf8;
+  background: rgba(14, 18, 35, 0.9);
+}
+
+.placeholder-drop-zone {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.placeholder-drop-zone.gap-drag-hover {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1.5px dashed #38bdf8;
 }
 
 .placeholder-text {
@@ -690,7 +746,61 @@
 .placed-chips-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.15rem;
+  width: 100%;
+}
+
+/* Drop Target Gaps between chips */
+.chip-drop-gap {
+  width: 12px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 6px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.chip-drop-gap .drop-indicator-bar {
+  width: 2px;
+  height: 20px;
+  border-radius: 999px;
+  background: transparent;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip-drop-gap:hover .drop-indicator-bar {
+  background: rgba(129, 140, 248, 0.65);
+  height: 28px;
+}
+
+.chip-drop-gap.gap-caret-active {
+  width: 18px;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.chip-drop-gap.gap-caret-active .drop-indicator-bar {
+  background: #38bdf8;
+  width: 3px;
+  height: 32px;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.chip-drop-gap.gap-drag-hover {
+  width: 26px;
+  background: rgba(99, 102, 241, 0.22);
+}
+
+.chip-drop-gap.gap-drag-hover .drop-indicator-bar {
+  background: #38bdf8;
+  width: 4px;
+  height: 36px;
+  box-shadow: 0 0 14px #38bdf8;
 }
 
 .assembled-preview-bar {
@@ -722,22 +832,45 @@
   background: #101426;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.chips-pool-grid.pool-drag-over {
+  border-color: #f43f5e !important;
+  background: rgba(244, 63, 94, 0.08) !important;
 }
 
 .word-chip {
+  display: inline-flex;
+  align-items: center;
   padding: 0.55rem 0.95rem;
   font-family: var(--font-mono);
   font-size: 0.92rem;
   font-weight: 700;
   border-radius: 10px;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   touch-action: manipulation;
-  transition: none;
+  transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
 .word-chip:active {
+  cursor: grabbing;
   transform: scale(0.96);
+}
+
+.chip-drag-handle {
+  font-size: 0.72rem;
+  color: #818cf8;
+  margin-right: 6px;
+  opacity: 0.65;
+  letter-spacing: -1px;
+}
+
+.word-chip.is-being-dragged {
+  opacity: 0.45;
+  transform: scale(0.95);
+  border-style: dashed !important;
 }
 
 .chip-available {

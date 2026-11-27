@@ -193,100 +193,34 @@ export default function XPRewardsShop({
 
       {toast && <div className="xp-shop-toast">{toast}</div>}
 
-      {/* Section 1: Quiz Power-Ups */}
-      <div className="xp-shop-section">
-        <h3 className="xp-shop-heading">Power Up Kuis Interaktif</h3>
-        <div className="xp-shop-grid">
-          {POWERUP_CATALOG.map((item) => {
-            const canAfford = availableXP >= item.cost
-            const stock = getPowerupStock(item.id)
-            return (
-              <div key={item.id} className="xp-item-card">
-                <div className="xp-item-top">
-                  <div
-                    className="xp-item-icon"
-                    style={{ color: item.accent, borderColor: `${item.accent}44` }}
-                  >
-                    {getPowerupIcon(item.id)}
-                  </div>
-                  <span className="xp-item-badge">{item.badge}</span>
-                </div>
-                <h4>{item.name}</h4>
-                <p>{item.desc}</p>
-                {stock > 0 && <span className="xp-stock-note">Stok siap pakai: {stock}</span>}
-                <button
-                  type="button"
-                  className={`btn-xp-redeem ${canAfford ? 'can-afford' : 'locked'}`}
-                  onClick={() => handleBuyPowerup(item)}
-                >
-                  <LuZap size={14} /> Tukar {item.cost} XP
-                </button>
-              </div>
-            )
-          })}
+      {/* Section 1: Hadiah Utama - Sertifikat Pencapaian Digital */}
+      <div className="xp-shop-section xp-cert-grand-section">
+        <div className="xp-section-header-row">
+          <div className="xp-heading-with-badge">
+            <h3 className="xp-shop-heading">Sertifikat Pencapaian Digital</h3>
+            <span className="xp-grand-prize-badge">HADIAH UTAMA</span>
+          </div>
+          <span className="xp-linkedin-tag">Siap Dipajang di LinkedIn</span>
         </div>
-      </div>
-
-      {/* Section 2: Exclusive Profile Titles */}
-      <div className="xp-shop-section">
-        <h3 className="xp-shop-heading">Gelar Profil Eksklusif</h3>
-        <div className="xp-titles-grid">
-          {TITLE_CATALOG.map((title) => {
-            const owned = state.unlockedTitles.includes(title.id)
-            const equipped = state.activeTitle === title.id
-            const canAfford = availableXP >= title.cost
-            return (
-              <div key={title.id} className={`xp-title-card ${equipped ? 'is-equipped' : ''}`}>
-                <span
-                  className="xp-title-preview"
-                  style={{ color: title.color, borderColor: `${title.color}55` }}
-                >
-                  <LuAward size={13} /> {title.label}
-                </span>
-                <button
-                  type="button"
-                  className={`btn-xp-title ${
-                    equipped ? 'is-equipped' : owned ? 'is-owned' : canAfford ? 'can-afford' : 'locked'
-                  }`}
-                  onClick={() => handleTitleAction(title)}
-                >
-                  {equipped ? (
-                    <>
-                      <LuCheck size={13} /> Terpasang
-                    </>
-                  ) : owned ? (
-                    'Pasang Gelar'
-                  ) : (
-                    <>
-                      {canAfford ? <LuZap size={13} /> : <LuLock size={13} />} {title.cost} XP
-                    </>
-                  )}
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Section 3: Downloadable Digital Certificate */}
-      <div className="xp-shop-section">
-        <h3 className="xp-shop-heading">Sertifikat Pencapaian Digital</h3>
-        <div className="xp-cert-card">
+        <div className="xp-cert-card xp-cert-card-grand">
           <div className="xp-cert-info">
-            <div className="xp-cert-icon">
-              <LuAward size={26} />
+            <div className="xp-cert-icon xp-cert-icon-grand">
+              <LuAward size={28} />
             </div>
             <div>
-              <h4>Sertifikat {langName} (PNG)</h4>
+              <div className="xp-cert-title-row">
+                <h4>Sertifikat {langName} (PNG Kualitas Tinggi)</h4>
+                <span className="xp-cert-pill">Verifikasi Otentik</span>
+              </div>
               <p>
-                Unduh sertifikat simpel dengan nama <strong>{userName}</strong> dan tema{' '}
-                <strong>{langName}</strong>. Setiap bahasa punya sertifikat terpisah.
+                Bukti kompetensi resmi atas nama <strong>{userName}</strong> untuk pemahaman sintaksis{' '}
+                <strong>{langName}</strong>. Format PNG siap upload langsung ke profil LinkedIn atau CV digital.
               </p>
             </div>
           </div>
           <button
             type="button"
-            className={`btn-xp-cert ${
+            className={`btn-xp-cert btn-xp-cert-grand ${
               isCurrentCertUnlocked
                 ? 'is-unlocked'
                 : availableXP >= CERTIFICATE_COST_XP
@@ -325,6 +259,81 @@ export default function XPRewardsShop({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Section 2: Quiz Power-Ups */}
+      <div className="xp-shop-section">
+        <h3 className="xp-shop-heading">Power Up Kuis Interaktif</h3>
+        <div className="xp-shop-grid">
+          {POWERUP_CATALOG.map((item) => {
+            const canAfford = availableXP >= item.cost
+            const stock = getPowerupStock(item.id)
+            return (
+              <div key={item.id} className="xp-item-card">
+                <div className="xp-item-top">
+                  <div
+                    className="xp-item-icon"
+                    style={{ color: item.accent, borderColor: `${item.accent}44` }}
+                  >
+                    {getPowerupIcon(item.id)}
+                  </div>
+                  <span className="xp-item-badge">{item.badge}</span>
+                </div>
+                <h4>{item.name}</h4>
+                <p>{item.desc}</p>
+                {stock > 0 && <span className="xp-stock-note">Stok siap pakai: {stock}</span>}
+                <button
+                  type="button"
+                  className={`btn-xp-redeem ${canAfford ? 'can-afford' : 'locked'}`}
+                  onClick={() => handleBuyPowerup(item)}
+                >
+                  <LuZap size={14} /> Tukar {item.cost} XP
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Section 3: Exclusive Profile Titles */}
+      <div className="xp-shop-section">
+        <h3 className="xp-shop-heading">Gelar Profil Eksklusif</h3>
+        <div className="xp-titles-grid">
+          {TITLE_CATALOG.map((title) => {
+            const owned = state.unlockedTitles.includes(title.id)
+            const equipped = state.activeTitle === title.id
+            const canAfford = availableXP >= title.cost
+            return (
+              <div key={title.id} className={`xp-title-card ${equipped ? 'is-equipped' : ''}`}>
+                <span
+                  className="xp-title-preview"
+                  style={{ color: title.color, borderColor: `${title.color}55` }}
+                >
+                  <LuAward size={13} /> {title.label}
+                </span>
+                <button
+                  type="button"
+                  className={`btn-xp-title ${
+                    equipped ? 'is-equipped' : owned ? 'is-owned' : canAfford ? 'can-afford' : 'locked'
+                  }`}
+                  onClick={() => handleTitleAction(title)}
+                >
+                  {equipped ? (
+                    <>
+                      <LuCheck size={13} /> Terpasang
+                    </>
+                  ) : owned ? (
+                    'Pasang Gelar'
+                  ) : (
+                    <>
+                      {canAfford ? <LuZap size={13} /> : <LuLock size={13} />} {title.cost} XP
+                    </>
+                  )}
+                </button>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
