@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   LuZap,
   LuLightbulb,
@@ -9,17 +10,29 @@ import {
   LuDownload,
   LuLock,
   LuShieldCheck,
+  LuCopy,
+  LuCheckCheck,
+  LuExternalLink,
+  LuTarget,
+  LuCode,
+  LuQrCode,
+  LuBuilding,
 } from 'react-icons/lu'
+import { FaLinkedin } from 'react-icons/fa'
 import {
   POWERUP_CATALOG,
   TITLE_CATALOG,
   CERTIFICATE_COST_XP,
+  LINKEDIN_COMPANY_ID,
+  LINKEDIN_COMPANY_URL,
   loadRewardState,
   saveRewardState,
   getAvailableXP,
   getActiveTitleMeta,
   refillHintTokensFull,
   downloadCertificatePng,
+  generateCredentialId,
+  getLinkedInCertUrl,
 } from '../utils/xpRewards'
 import { playSoundCue } from './AccessibilityToolbar'
 import './XPRewardsShop.css'
@@ -32,14 +45,35 @@ export default function XPRewardsShop({
 }) {
   const [state, setState] = useState(() => loadRewardState())
   const [toast, setToast] = useState('')
+  const [copiedId, setCopiedId] = useState('')
 
   const availableXP = getAvailableXP(totalXP, state)
   const level = Math.floor(totalXP / 100) + 1
   const activeTitleMeta = getActiveTitleMeta(state)
 
+  const currentCredId =
+    state.certDetails?.[langName]?.credentialId || generateCredentialId(userName, langName)
+  const currentIssueDate = state.certDetails?.[langName]?.issueDate
+  const currentLinkedInUrl = getLinkedInCertUrl({
+    userName,
+    langName,
+    credentialId: currentCredId,
+    issueDate: currentIssueDate,
+  })
+
   const notify = (msg) => {
     setToast(msg)
     setTimeout(() => setToast(''), 2800)
+  }
+
+  const handleCopyId = (id) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(id).catch(() => {})
+    }
+    setCopiedId(id)
+    playSoundCue('success')
+    notify(`ID Kredensial "${id}" berhasil disalin!`)
+    setTimeout(() => setCopiedId(''), 2500)
   }
 
   const commitState = (next) => {
@@ -112,6 +146,8 @@ export default function XPRewardsShop({
       downloadCertificatePng({
         userName,
         langName,
+        credentialId: currentCredId,
+        issueDate: currentIssueDate,
       })
       playSoundCue('success')
       notify(`Sertifikat ${langName} (PNG) berhasil diunduh!`)
@@ -124,25 +160,43 @@ export default function XPRewardsShop({
       return
     }
 
+    const newIssueDate = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
     const next = {
       ...state,
       spentXP: state.spentXP + CERTIFICATE_COST_XP,
       unlockedCert: true,
       unlockedCerts: [...state.unlockedCerts, langName],
+      certDetails: {
+        ...(state.certDetails || {}),
+        [langName]: {
+          credentialId: currentCredId,
+          issueDate: newIssueDate,
+        },
+      },
     }
     commitState(next)
     playSoundCue('fanfare')
     downloadCertificatePng({
       userName,
       langName,
+      credentialId: currentCredId,
+      issueDate: newIssueDate,
     })
     notify(`Sertifikat ${langName} terbuka & otomatis terunduh!`)
   }
 
   const handleDownloadSavedCert = (savedLang) => {
+    const cred = state.certDetails?.[savedLang]
     downloadCertificatePng({
       userName,
       langName: savedLang,
+      credentialId: cred?.credentialId,
+      issueDate: cred?.issueDate,
     })
     playSoundCue('success')
     notify(`Sertifikat ${savedLang} (PNG) berhasil diunduh!`)
@@ -193,14 +247,16 @@ export default function XPRewardsShop({
 
       {toast && <div className="xp-shop-toast">{toast}</div>}
 
-      {/* Section 1: Hadiah Utama - Sertifikat Pencapaian Digital */}
+      {/* Section 1: Hadiah Utama - Sertifikat Kompetensi Digital Kredibel */}
       <div className="xp-shop-section xp-cert-grand-section">
         <div className="xp-section-header-row">
           <div className="xp-heading-with-badge">
-            <h3 className="xp-shop-heading">Sertifikat Pencapaian Digital</h3>
-            <span className="xp-grand-prize-badge">HADIAH UTAMA</span>
+            <h3 className="xp-shop-heading">Sertifikat Kompetensi Digital</h3>
+            <span className="xp-grand-prize-badge">KREDIBILITAS RESMI</span>
           </div>
-          <span className="xp-linkedin-tag">Siap Dipajang di LinkedIn</span>
+          <span className="xp-linkedin-tag">
+            <FaLinkedin size={13} /> Siap Masuk LinkedIn
+          </span>
         </div>
         <div className="xp-cert-card xp-cert-card-grand">
           <div className="xp-cert-info">
@@ -209,53 +265,188 @@ export default function XPRewardsShop({
             </div>
             <div>
               <div className="xp-cert-title-row">
-                <h4>Sertifikat {langName} (PNG Kualitas Tinggi)</h4>
-                <span className="xp-cert-pill">Verifikasi Otentik</span>
+                <h4>Sertifikat {langName} (PNG 1200×820 Kualitas Tinggi)</h4>
+                <span className="xp-cert-pill">
+                  <LuShieldCheck size={12} /> Verifikasi Otentik
+                </span>
               </div>
               <p>
-                Bukti kompetensi resmi atas nama <strong>{userName}</strong> untuk pemahaman sintaksis{' '}
-                <strong>{langName}</strong>. Format PNG siap upload langsung ke profil LinkedIn atau CV digital.
+                Bukti kompetensi resmi atas nama <strong>{userName}</strong> untuk pemahaman sintaksis &amp; logika{' '}
+                <strong>{langName}</strong>. Dilengkapi stempel emas resmi, nomor seri ID Kredensial unik, dan passing grade kelulusan ≥ 55%.
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            className={`btn-xp-cert btn-xp-cert-grand ${
-              isCurrentCertUnlocked
-                ? 'is-unlocked'
-                : availableXP >= CERTIFICATE_COST_XP
-                ? 'can-afford'
-                : 'locked'
-            }`}
-            onClick={handleCertificate}
-          >
+
+          {/* Credential ID and 1-Click Verification Row */}
+          <div className="xp-cert-cred-row">
+            <div className="xp-cert-cred-item">
+              <span className="xp-cert-cred-label">ID KREDENSIAL RESMI</span>
+              <div className="xp-cert-cred-value">
+                <code>{currentCredId}</code>
+                <button
+                  type="button"
+                  className="btn-cert-copy-id"
+                  title="Salin ID Kredensial untuk LinkedIn / CV"
+                  onClick={() => handleCopyId(currentCredId)}
+                >
+                  {copiedId === currentCredId ? <LuCheck size={13} /> : <LuCopy size={13} />}
+                  <span>{copiedId === currentCredId ? 'Tersalin' : 'Salin ID'}</span>
+                </button>
+              </div>
+            </div>
+            <div className="xp-cert-cred-item">
+              <span className="xp-cert-cred-label">ORGANISASI RESMI LINKEDIN</span>
+              <a
+                href={LINKEDIN_COMPANY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="xp-cert-org-val-link"
+                title="Lihat halaman perusahaan resmi Kinetix code di LinkedIn"
+              >
+                <FaLinkedin size={15} />
+                <strong>Kinetix code</strong>
+                <span className="xp-org-id-tag">ID: {LINKEDIN_COMPANY_ID}</span>
+                <LuExternalLink size={12} />
+              </a>
+            </div>
+          </div>
+
+          {/* Action Buttons: Unlock / Download + Add to LinkedIn + Barcode Verify */}
+          <div className="xp-cert-actions-row">
+            <button
+              type="button"
+              className={`btn-xp-cert btn-xp-cert-grand ${
+                isCurrentCertUnlocked
+                  ? 'is-unlocked'
+                  : availableXP >= CERTIFICATE_COST_XP
+                  ? 'can-afford'
+                  : 'locked'
+              }`}
+              onClick={handleCertificate}
+            >
+              {isCurrentCertUnlocked ? (
+                <>
+                  <LuDownload size={16} /> Unduh Sertifikat {langName} (PNG)
+                </>
+              ) : (
+                <>
+                  <LuZap size={15} /> Buka Sertifikat {langName} ({CERTIFICATE_COST_XP} XP)
+                </>
+              )}
+            </button>
+
             {isCurrentCertUnlocked ? (
               <>
-                <LuDownload size={16} /> Unduh {langName} (PNG)
+                <a
+                  href={currentLinkedInUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-xp-linkedin"
+                  title="Tambahkan lisensi dan sertifikat ini ke profil LinkedIn Anda secara instan"
+                >
+                  <FaLinkedin size={16} />
+                  <span>Tambah ke Profil LinkedIn</span>
+                  <LuExternalLink size={13} />
+                </a>
+
+                <Link
+                  to={`/verify?id=${currentCredId}&name=${encodeURIComponent(userName)}&lang=${encodeURIComponent(langName)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-xp-verify-view"
+                  title="Buka halaman verifikasi dan barcode sertifikat resmi ini"
+                >
+                  <LuQrCode size={15} />
+                  <span>Cek Barcode Web</span>
+                  <LuExternalLink size={12} />
+                </Link>
               </>
             ) : (
-              <>
-                <LuZap size={15} /> Buka {langName} ({CERTIFICATE_COST_XP} XP)
-              </>
+              <span className="xp-linkedin-preview-hint">
+                <FaLinkedin size={13} /> Buka dengan {CERTIFICATE_COST_XP} XP untuk 1-Klik Tambah ke Profil LinkedIn
+              </span>
             )}
-          </button>
+          </div>
+
+          {/* 4 Credibility Pillars Explaining Value to Recruiters (NO EMOJIS - PURE ICONS) */}
+          <div className="xp-credibility-pillars">
+            <div className="xp-pillar-item">
+              <div className="xp-pillar-icon">
+                <LuTarget size={17} />
+              </div>
+              <div className="xp-pillar-text">
+                <strong>Passing Grade ≥ 55%</strong>
+                <small>Bukan sekadar tontonan, wajib lulus evaluasi logika &amp; kuis acak.</small>
+              </div>
+            </div>
+            <div className="xp-pillar-item">
+              <div className="xp-pillar-icon">
+                <LuCode size={17} />
+              </div>
+              <div className="xp-pillar-text">
+                <strong>Validasi Sintaks Riil</strong>
+                <small>Eksekusi kode langsung di browser tanpa simulator statis.</small>
+              </div>
+            </div>
+            <div className="xp-pillar-item">
+              <div className="xp-pillar-icon">
+                <LuShieldCheck size={17} />
+              </div>
+              <div className="xp-pillar-text">
+                <strong>ID Seri Anti-Duplikasi</strong>
+                <small>Kode unik {currentCredId.slice(-6)} untuk verifikasi rekruter &amp; kampus.</small>
+              </div>
+            </div>
+            <div className="xp-pillar-item">
+              <div className="xp-pillar-icon">
+                <FaLinkedin size={17} />
+              </div>
+              <div className="xp-pillar-text">
+                <strong>Standar LinkedIn Terintegrasi</strong>
+                <small>Terkoneksi ke halaman organisasi Kinetix code (ID: {LINKEDIN_COMPANY_ID}).</small>
+              </div>
+            </div>
+          </div>
         </div>
 
         {state.unlockedCerts.length > 0 && (
           <div className="xp-cert-owned-list">
-            <span className="xp-cert-owned-label">Sertifikat yang sudah dimiliki:</span>
+            <span className="xp-cert-owned-label">Sertifikat Terverifikasi yang Anda Miliki:</span>
             <div className="xp-cert-owned-chips">
-              {state.unlockedCerts.map((savedLang) => (
-                <button
-                  key={savedLang}
-                  type="button"
-                  className="xp-cert-owned-chip"
-                  onClick={() => handleDownloadSavedCert(savedLang)}
-                >
-                  <LuDownload size={13} />
-                  <span>{savedLang}</span>
-                </button>
-              ))}
+              {state.unlockedCerts.map((savedLang) => {
+                const cred = state.certDetails?.[savedLang]
+                const credId = cred?.credentialId || generateCredentialId(userName, savedLang)
+                const linkedInUrl = getLinkedInCertUrl({
+                  userName,
+                  langName: savedLang,
+                  credentialId: credId,
+                  issueDate: cred?.issueDate,
+                })
+
+                return (
+                  <div key={savedLang} className="xp-cert-owned-item">
+                    <button
+                      type="button"
+                      className="xp-cert-owned-chip"
+                      onClick={() => handleDownloadSavedCert(savedLang)}
+                      title={`Unduh PNG ${savedLang}`}
+                    >
+                      <LuDownload size={13} />
+                      <span>{savedLang}</span>
+                    </button>
+                    <a
+                      href={linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="xp-owned-linkedin-btn"
+                      title={`Tambah ${savedLang} ke LinkedIn`}
+                    >
+                      <FaLinkedin size={12} />
+                      <span>+ LinkedIn</span>
+                    </a>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

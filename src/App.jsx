@@ -12,6 +12,7 @@ import Tentang from './pages/Tentang'
 import Onboarding from './pages/Onboarding'
 import LearnHub from './pages/LearnHub'
 import AuthPage from './pages/AuthPage'
+import VerifyCertificate from './pages/VerifyCertificate'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 class ErrorBoundary extends React.Component {
@@ -98,6 +99,7 @@ function AppContent() {
           <Route path="/simulasi" element={<Simulasi />} />
           <Route path="/materi" element={<Materi />} />
           <Route path="/tentang" element={<Tentang />} />
+          <Route path="/verify" element={<VerifyCertificate />} />
         </Routes>
       </main>
       {!hideStandardChrome && <Footer />}

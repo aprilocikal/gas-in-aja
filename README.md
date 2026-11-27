@@ -53,7 +53,49 @@ Mencakup bahasa yang langsung relevan bagi mahasiswa baru hingga eksplorasi ting
 * **Sistem Hint Strategis (3/3):** Tiga token bantuan dapat digunakan kapan saja tanpa jeda. Waktu tunggu isi ulang 60 detik hanya aktif setelah seluruh 3 token habis terpakai.
 * **Audio Antarmuka, Pembaca Soal & Backsound Fokus:** Dilengkapi efek suara lembut berbasis Web Audio API, tombol **Audio** yang membacakan teks soal via *Web Speech Synthesis*, serta musik pengantar ambient lo fi lembut yang otomatis mengecil saat soal dibacakan (dilengkapi tombol **BGM / Mute**).
 * **Papan Skor Real Time (Top 10) & Misi Harian:** Peringkat 10 besar tersusun otomatis berdasarkan XP aktual melalui Firebase Firestore dan dilengkapi misi harian.
-* **Benefit EXP Menjadi Sertifikat Digital & LinkedIn:** Seluruh perolehan EXP dari keberhasilan menuntaskan checkpoint dapat ditukarkan di tab Misi menjadi **Sertifikat Pencapaian Digital** resmi (PNG resolusi tinggi). Sertifikat memuat nama pembelajar serta bahasa pemrograman yang dituntaskan, diverifikasi secara otentik, dan siap dipajang langsung pada profil **LinkedIn** maupun portofolio karir koder.
+* **Benefit EXP Menjadi Sertifikat Digital Kredibel & Integrasi LinkedIn:** Seluruh perolehan EXP dari keberhasilan menuntaskan checkpoint dapat ditukarkan di tab Misi/Toko Hadiah menjadi **Sertifikat Kompetensi Digital Resmi** (PNG resolusi tinggi 1200×820 px). Sertifikat ini dirancang dengan standar kredibilitas akademik: memuat nama penerima, bahasa pemrograman yang dikuasai, nomor seri ID Kredensial unik anti-duplikasi, stempel emas resmi Kinetix Code, tanda tangan dewan kurikulum, **Barcode QR Code Verifikasi Riil**, serta tombol **1-Klik Tambah ke Profil LinkedIn** yang langsung mengisi form lisensi LinkedIn secara otomatis terhubung ke halaman perusahaan resmi **Kinetix code** (ID: 144186335).
+
+## Kredibilitas Sertifikat Digital & Integrasi LinkedIn
+
+Sertifikat yang diterbitkan oleh Kinetix Code bukan sekadar sertifikat kehadiran pasif (*completion certificate* biasa), melainkan **bukti kompetensi teknis terverifikasi** yang memiliki bobot kredibilitas tinggi untuk portofolio digital, CV mahasiswa/pelamar kerja, serta profil **LinkedIn**.
+
+### 1. Empat Pilar Kredibilitas Sertifikat
+
+| Pilar Kredibilitas | Penjelasan Standar Mutu |
+| :--- | :--- |
+| **1. Ambang Batas Kelulusan Riil (≥ 55%)** | Pembelajar tidak bisa mendapatkan sertifikat hanya dengan mengeklik atau menonton video. Pembelajar wajib menyelesaikan checkpoint bertingkat, bank soal logika acak (*randomized problem bank*), dan mempertahankan nyawa praktikum. |
+| **2. Pengujian Sintaksis & Logika Nyata** | Materi dievaluasi melalui eksekusi kode nyata di browser pada Code Playground dan Visualizer 60 FPS, memastikan pemahaman algoritmik yang konkret. |
+| **3. ID Kredensial Unik & Terverifikasi** | Setiap sertifikat dilengkapi nomor seri permanen dengan skema resmi `KC-2026-[LANG]-[HASH]` (misal: `KC-2026-JAV-8B1593`). Nomor seri ini unik per pengguna dan per bahasa pemrograman untuk mencegah pemalsuan. |
+| **4. Barcode QR Code Riil & Halaman Verifikasi Publik** | Sertifikat dilengkapi QR Code yang dapat langsung dipindai dengan kamera ponsel. Hasil pemindaian mengarah ke halaman verifikasi resmi (`/verify?id=...`) yang menampilkan status keabsahan, data penerima, dan stempel digital. |
+| **5. Terhubung ke Halaman Perusahaan Resmi LinkedIn** | Kinetix Code memiliki Halaman Organisasi Resmi di LinkedIn: [Kinetix code](https://www.linkedin.com/company/144186335/) (ID: `144186335`). Saat sertifikat ditambahkan, logo resmi Kinetix Code langsung tampil pada profil pengguna. |
+
+### 2. Cara Menambahkan Sertifikat ke Profil LinkedIn
+
+Kinetix Code menyediakan dua cara mudah untuk mencantumkan sertifikat ke bagian **Lisensi & Sertifikasi (*Licenses & Certifications*)** di LinkedIn:
+
+#### A. Metode 1-Klik Otomatis (Direkomendasikan)
+1. Kumpulkan minimal **150 XP** melalui checkpoint dan misi harian.
+2. Buka tab **Misi & Toko Tukar XP** di halaman belajar (`/learn`).
+3. Buka atau unduh sertifikat bahasa pemrograman yang diinginkan.
+4. Klik tombol **"Tambah ke Profil LinkedIn"** berikon LinkedIn.
+5. Halaman LinkedIn akan terbuka secara otomatis dengan formulir lisensi terisi lengkap (*pre-filled*): nama sertifikasi, organisasi penerbit terhubung ke Kinetix code, tanggal terbit, ID kredensial, dan URL verifikasi langsung. Cukup klik **Simpan (*Save*)**.
+6. Saat siapa pun mengeklik tombol **"Show credential"** pada profil LinkedIn Anda, browser langsung membuka halaman verifikasi resmi sertifikat Anda di web Kinetix Code.
+
+#### B. Metode Manual (Via Aplikasi LinkedIn atau Web)
+Jika ingin memasukkan sertifikat secara manual ke profil LinkedIn:
+1. Buka profil LinkedIn Anda, gulir ke bagian **Licenses & certifications** (Lisensi & sertifikasi), lalu klik tombol **+ (Tambah)**.
+2. Isi kolom formulir dengan data berikut:
+   * **Nama (*Name*)**: `Sertifikat Kompetensi Pemrograman: [Nama Bahasa]` *(Contoh: Sertifikat Kompetensi Pemrograman: Java)*
+   * **Organisasi Penerbit (*Issuing organization*)**: `Kinetix code` *(Pilih organisasi resmi Kinetix code ID: `144186335`)*
+   * **Tanggal Penerbitan (*Issue date*)**: Masukkan bulan & tahun saat sertifikat dibuka
+   * **ID Kredensial (*Credential ID*)**: Salin kode unik dari kartu sertifikat Anda *(Contoh: `KC-2026-JAV-8B1593`)*
+   * **URL Kredensial (*Credential URL*)**: `https://kinetixcode.vercel.app/verify?id=[ID_KREDENSIAL]`
+3. Unggah file gambar PNG beresolusi tinggi sertifikat sebagai lampiran media (*Media attachment*) pada profil atau postingan LinkedIn Anda.
+
+### 3. Nilai Tambah bagi Mahasiswa & Job Seeker
+* **Tervalidasi Langsung:** Tombol *Show credential* pada LinkedIn membuka halaman verifikasi resmi, membuktikan keaslian sertifikat tanpa perantara.
+* **Logo Organisasi Resmi di Profil:** Menghilangkan logo gedung abu-abu LinkedIn dan menggantikannya dengan logo resmi Kinetix code.
+* **Portofolio LinkedIn Terpercaya:** Membedakan pencapaian Anda dari sertifikat menonton video pasif karena disertai passing grade dan uji kode riil.
 
 ## Arsitektur & Teknologi
 

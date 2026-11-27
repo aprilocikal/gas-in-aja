@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { FaLinkedin } from 'react-icons/fa'
 import KinetixLogo from './KinetixLogo'
 import './Footer.css'
 
@@ -15,6 +16,17 @@ function Footer() {
               <p className="footer-desc">
                 Platform pembelajaran programming dan visualisasi algoritma interaktif 60 FPS dari tingkat dasar hingga sistem.
               </p>
+              <div className="footer-social">
+                <a
+                  href="https://www.linkedin.com/company/144186335/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-link"
+                  title="Halaman Perusahaan Resmi LinkedIn: Kinetix code"
+                >
+                  <FaLinkedin size={18} />
+                </a>
+              </div>
             </div>
 
             <div className="footer-col">
@@ -23,15 +35,22 @@ function Footer() {
               <Link to="/learn">Alur Belajar</Link>
               <Link to="/materi">Katalog Bahasa</Link>
               <Link to="/simulasi">Visualizer</Link>
+              <Link to="/verify">Verifikasi Sertifikat</Link>
               <Link to="/tentang">Tentang Platform</Link>
             </div>
 
             <div className="footer-col">
-              <h4>Fokus Materi</h4>
-              <span>Low-Level (C, Assembly)</span>
-              <span>Modern (Python, JS, Go)</span>
-              <span>Esoterik (Brainfuck, Haskell)</span>
-              <span>Pointer &amp; Memori RAM</span>
+              <h4>Kredibilitas &amp; Komunitas</h4>
+              <a
+                href="https://www.linkedin.com/company/144186335/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LinkedIn: Kinetix code
+              </a>
+              <Link to="/verify">Cek Barcode Sertifikat</Link>
+              <span>Passing Grade ≥ 55%</span>
+              <span>Kompilasi Kode Riil</span>
             </div>
           </div>
 

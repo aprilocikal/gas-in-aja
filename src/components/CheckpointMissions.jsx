@@ -108,7 +108,7 @@ export default function CheckpointMissions({
         <h2>
           <LuFlag size={22} className="icon-inline" /> Misi &amp; Toko Tukar XP
         </h2>
-        <p>Kumpulkan XP dari misi harian, lalu tukarkan menjadi Power-Up Kuis, Gelar Profil, &amp; Sertifikat Digital!</p>
+        <p>Kumpulkan XP dari misi harian, lalu tukarkan menjadi Power-Up Kuis, Gelar Profil, &amp; Sertifikat Digital Kredibel untuk LinkedIn!</p>
       </div>
 
       <div className="missions-subtabs" role="tablist" aria-label="Pilih Misi atau Toko XP">
