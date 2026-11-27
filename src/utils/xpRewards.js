@@ -356,16 +356,16 @@ export async function downloadCertificatePng({
   ctx.fillText(`ID Kredensial: ${credId}`, 104, 666)
 
   // Right Footer: Real Scannable Barcode / QR Code
-  const qrX = 840
-  const qrY = 604
-  const qrSize = 72
+  const qrX = 800
+  const qrY = 596
+  const qrSize = 92
 
   try {
     const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-      margin: 1,
-      width: 140,
+      margin: 2,
+      width: 280,
       errorCorrectionLevel: 'M',
-      color: { dark: '#09090b', light: '#ffffff' },
+      color: { dark: '#000000', light: '#ffffff' },
     })
     const qrImg = new Image()
     qrImg.src = qrDataUrl
@@ -373,7 +373,15 @@ export async function downloadCertificatePng({
       qrImg.onload = resolve
       qrImg.onerror = resolve
     })
+    // Crisp white background padding for guaranteed quiet zone detection
+    ctx.fillStyle = '#ffffff'
+    drawRoundedRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 4)
+    ctx.fill()
+
+    // Disable image smoothing for razor-sharp QR modules
+    ctx.imageSmoothingEnabled = false
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+    ctx.imageSmoothingEnabled = true
   } catch {
     ctx.fillStyle = '#ffffff'
     drawRoundedRect(qrX, qrY, qrSize, qrSize, 4)
@@ -385,15 +393,15 @@ export async function downloadCertificatePng({
   ctx.textAlign = 'left'
   ctx.fillStyle = '#09090b'
   ctx.font = '600 12px Inter, system-ui, sans-serif'
-  ctx.fillText('Pindai untuk Verifikasi', infoX, qrY + 18)
+  ctx.fillText('Pindai untuk Verifikasi', infoX, qrY + 22)
 
   ctx.fillStyle = '#7c3aed'
   ctx.font = '600 11.5px "Fira Code", monospace'
-  ctx.fillText(credId, infoX, qrY + 36)
+  ctx.fillText(credId, infoX, qrY + 44)
 
   ctx.fillStyle = '#71717a'
   ctx.font = '500 11px "Fira Code", monospace'
-  ctx.fillText('kinetixcode.vercel.app/verify', infoX, qrY + 54)
+  ctx.fillText('kinetixcode.vercel.app/verify', infoX, qrY + 66)
 
   // Trigger File Download
   const langSlug = String(langName || 'Pemrograman')

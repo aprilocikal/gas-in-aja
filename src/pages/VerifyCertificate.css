@@ -308,25 +308,28 @@
 .verify-qr-col {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: 1.25rem;
 }
 
 .verify-qr-box {
-  width: 96px;
-  height: 96px;
-  border-radius: 10px;
+  width: 130px;
+  height: 130px;
+  border-radius: 12px;
   background: #ffffff;
-  padding: 6px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
 }
 
 .verify-qr-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .verify-qr-placeholder {

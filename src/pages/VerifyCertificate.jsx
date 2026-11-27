@@ -24,6 +24,7 @@ import {
   LINKEDIN_COMPANY_URL,
   downloadCertificatePng,
   getLinkedInCertUrl,
+  getCertificateVerifyUrl,
 } from '../utils/xpRewards'
 import './VerifyCertificate.css'
 
@@ -42,18 +43,23 @@ export default function VerifyCertificate() {
   const userName = rawName || 'Koder Kinetix'
   const langName = rawLang || 'Pemrograman'
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const verifyTargetUrl = getCertificateVerifyUrl({
+    credentialId,
+    userName,
+    langName,
+  })
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    QRCode.toDataURL(currentUrl || `https://kinetixcode.vercel.app/verify?id=${credentialId}`, {
-      width: 200,
-      margin: 1,
-      color: { dark: '#0f172a', light: '#ffffff' },
+    QRCode.toDataURL(verifyTargetUrl, {
+      width: 320,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#000000', light: '#ffffff' },
     })
       .then((url) => setQrDataUrl(url))
       .catch(() => {})
-  }, [credentialId, currentUrl])
+  }, [verifyTargetUrl])
 
   const handleCopy = (text) => {
     if (navigator.clipboard) {
