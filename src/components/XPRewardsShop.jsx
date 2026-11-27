@@ -11,12 +11,8 @@ import {
   LuLock,
   LuShieldCheck,
   LuCopy,
-  LuCheckCheck,
   LuExternalLink,
-  LuTarget,
-  LuCode,
   LuQrCode,
-  LuBuilding,
 } from 'react-icons/lu'
 import { FaLinkedin } from 'react-icons/fa'
 import {
@@ -247,55 +243,48 @@ export default function XPRewardsShop({
 
       {toast && <div className="xp-shop-toast">{toast}</div>}
 
-      {/* Section 1: Hadiah Utama - Sertifikat Kompetensi Digital Kredibel */}
+      {/* Section 1: Hadiah Utama - Sertifikat Kompetensi Digital */}
       <div className="xp-shop-section xp-cert-grand-section">
         <div className="xp-section-header-row">
-          <div className="xp-heading-with-badge">
-            <h3 className="xp-shop-heading">Sertifikat Kompetensi Digital</h3>
-            <span className="xp-grand-prize-badge">KREDIBILITAS RESMI</span>
-          </div>
-          <span className="xp-linkedin-tag">
-            <FaLinkedin size={13} /> Siap Masuk LinkedIn
+          <h3 className="xp-shop-heading">Sertifikat Kompetensi Digital</h3>
+          <span className="xp-section-sub-hint">
+            <LuShieldCheck size={14} /> Terhubung ke LinkedIn Kinetix Code
           </span>
         </div>
         <div className="xp-cert-card xp-cert-card-grand">
           <div className="xp-cert-info">
             <div className="xp-cert-icon xp-cert-icon-grand">
-              <LuAward size={28} />
+              <LuAward size={24} />
             </div>
-            <div>
+            <div className="xp-cert-text-col">
               <div className="xp-cert-title-row">
-                <h4>Sertifikat {langName} (PNG 1200×820 Kualitas Tinggi)</h4>
-                <span className="xp-cert-pill">
-                  <LuShieldCheck size={12} /> Verifikasi Otentik
-                </span>
+                <h4>Sertifikat Kompetensi: {langName}</h4>
               </div>
               <p>
-                Bukti kompetensi resmi atas nama <strong>{userName}</strong> untuk pemahaman sintaksis &amp; logika{' '}
-                <strong>{langName}</strong>. Dilengkapi stempel emas resmi, nomor seri ID Kredensial unik, dan passing grade kelulusan ≥ 55%.
+                Diterbitkan resmi oleh <strong>Kinetix code</strong> untuk <strong>{userName}</strong> atas penyelesaian kurikulum dan evaluasi kompetensi pemrograman {langName}.
               </p>
             </div>
           </div>
 
-          {/* Credential ID and 1-Click Verification Row */}
+          {/* Credential ID and Organization Info */}
           <div className="xp-cert-cred-row">
             <div className="xp-cert-cred-item">
-              <span className="xp-cert-cred-label">ID KREDENSIAL RESMI</span>
+              <span className="xp-cert-cred-label">ID Kredensial</span>
               <div className="xp-cert-cred-value">
                 <code>{currentCredId}</code>
                 <button
                   type="button"
                   className="btn-cert-copy-id"
-                  title="Salin ID Kredensial untuk LinkedIn / CV"
+                  title="Salin ID Kredensial"
                   onClick={() => handleCopyId(currentCredId)}
                 >
-                  {copiedId === currentCredId ? <LuCheck size={13} /> : <LuCopy size={13} />}
-                  <span>{copiedId === currentCredId ? 'Tersalin' : 'Salin ID'}</span>
+                  {copiedId === currentCredId ? <LuCheck size={12} /> : <LuCopy size={12} />}
+                  <span>{copiedId === currentCredId ? 'Tersalin' : 'Salin'}</span>
                 </button>
               </div>
             </div>
             <div className="xp-cert-cred-item">
-              <span className="xp-cert-cred-label">ORGANISASI RESMI LINKEDIN</span>
+              <span className="xp-cert-cred-label">Penerbit Resmi</span>
               <a
                 href={LINKEDIN_COMPANY_URL}
                 target="_blank"
@@ -303,10 +292,10 @@ export default function XPRewardsShop({
                 className="xp-cert-org-val-link"
                 title="Lihat halaman perusahaan resmi Kinetix code di LinkedIn"
               >
-                <FaLinkedin size={15} />
-                <strong>Kinetix code</strong>
+                <FaLinkedin size={14} />
+                <span>Kinetix code</span>
                 <span className="xp-org-id-tag">ID: {LINKEDIN_COMPANY_ID}</span>
-                <LuExternalLink size={12} />
+                <LuExternalLink size={11} />
               </a>
             </div>
           </div>
@@ -326,11 +315,11 @@ export default function XPRewardsShop({
             >
               {isCurrentCertUnlocked ? (
                 <>
-                  <LuDownload size={16} /> Unduh Sertifikat {langName} (PNG)
+                  <LuDownload size={15} /> Unduh Sertifikat (PNG)
                 </>
               ) : (
                 <>
-                  <LuZap size={15} /> Buka Sertifikat {langName} ({CERTIFICATE_COST_XP} XP)
+                  <LuZap size={14} /> Buka Sertifikat {langName} ({CERTIFICATE_COST_XP} XP)
                 </>
               )}
             </button>
@@ -344,9 +333,9 @@ export default function XPRewardsShop({
                   className="btn-xp-linkedin"
                   title="Tambahkan lisensi dan sertifikat ini ke profil LinkedIn Anda secara instan"
                 >
-                  <FaLinkedin size={16} />
-                  <span>Tambah ke Profil LinkedIn</span>
-                  <LuExternalLink size={13} />
+                  <FaLinkedin size={15} />
+                  <span>Tambah ke LinkedIn</span>
+                  <LuExternalLink size={12} />
                 </a>
 
                 <Link
@@ -356,9 +345,9 @@ export default function XPRewardsShop({
                   className="btn-xp-verify-view"
                   title="Buka halaman verifikasi dan barcode sertifikat resmi ini"
                 >
-                  <LuQrCode size={15} />
-                  <span>Cek Barcode Web</span>
-                  <LuExternalLink size={12} />
+                  <LuQrCode size={14} />
+                  <span>Verifikasi Web</span>
+                  <LuExternalLink size={11} />
                 </Link>
               </>
             ) : (
@@ -367,51 +356,11 @@ export default function XPRewardsShop({
               </span>
             )}
           </div>
-
-          {/* 4 Credibility Pillars Explaining Value to Recruiters (NO EMOJIS - PURE ICONS) */}
-          <div className="xp-credibility-pillars">
-            <div className="xp-pillar-item">
-              <div className="xp-pillar-icon">
-                <LuTarget size={17} />
-              </div>
-              <div className="xp-pillar-text">
-                <strong>Passing Grade ≥ 55%</strong>
-                <small>Bukan sekadar tontonan, wajib lulus evaluasi logika &amp; kuis acak.</small>
-              </div>
-            </div>
-            <div className="xp-pillar-item">
-              <div className="xp-pillar-icon">
-                <LuCode size={17} />
-              </div>
-              <div className="xp-pillar-text">
-                <strong>Validasi Sintaks Riil</strong>
-                <small>Eksekusi kode langsung di browser tanpa simulator statis.</small>
-              </div>
-            </div>
-            <div className="xp-pillar-item">
-              <div className="xp-pillar-icon">
-                <LuShieldCheck size={17} />
-              </div>
-              <div className="xp-pillar-text">
-                <strong>ID Seri Anti-Duplikasi</strong>
-                <small>Kode unik {currentCredId.slice(-6)} untuk verifikasi rekruter &amp; kampus.</small>
-              </div>
-            </div>
-            <div className="xp-pillar-item">
-              <div className="xp-pillar-icon">
-                <FaLinkedin size={17} />
-              </div>
-              <div className="xp-pillar-text">
-                <strong>Standar LinkedIn Terintegrasi</strong>
-                <small>Terkoneksi ke halaman organisasi Kinetix code (ID: {LINKEDIN_COMPANY_ID}).</small>
-              </div>
-            </div>
-          </div>
         </div>
 
         {state.unlockedCerts.length > 0 && (
           <div className="xp-cert-owned-list">
-            <span className="xp-cert-owned-label">Sertifikat Terverifikasi yang Anda Miliki:</span>
+            <span className="xp-cert-owned-label">Sertifikat Dimiliki:</span>
             <div className="xp-cert-owned-chips">
               {state.unlockedCerts.map((savedLang) => {
                 const cred = state.certDetails?.[savedLang]

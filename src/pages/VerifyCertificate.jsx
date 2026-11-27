@@ -12,7 +12,6 @@ import {
   LuCheck,
   LuCopy,
   LuSearch,
-  LuCode,
   LuCheckCheck,
   LuArrowLeft,
   LuBuilding,
@@ -119,16 +118,16 @@ export default function VerifyCertificate() {
           {/* Header Status Banner */}
           <div className="verify-status-banner">
             <div className="verify-status-icon-wrap">
-              <LuShieldCheck size={36} />
+              <LuShieldCheck size={28} />
             </div>
             <div className="verify-status-text">
               <div className="verify-status-tag">
-                <LuBadgeCheck size={14} />
-                <span>STATUS: TERVERIFIKASI ASLI &amp; RESMI</span>
+                <LuBadgeCheck size={13} />
+                <span>Terverifikasi Resmi &amp; Sah</span>
               </div>
-              <h1 className="verify-title">Sertifikat Kompetensi Pemrograman</h1>
+              <h1 className="verify-title">Sertifikat Kompetensi: {langName}</h1>
               <p className="verify-subtitle">
-                Kredensial ini telah divalidasi dan terdaftar secara sah di sistem kurikulum resmi{' '}
+                Kredensial digital ini terdaftar secara sah dalam sistem kurikulum publik{' '}
                 <strong>Kinetix code</strong>.
               </p>
             </div>
@@ -138,21 +137,21 @@ export default function VerifyCertificate() {
           <div className="verify-grid">
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuUser size={14} /> NAMA PENERIMA SERTIFIKAT
+                <LuUser size={13} /> Penerima Sertifikat
               </span>
               <strong className="verify-field-value text-highlight">{userName}</strong>
             </div>
 
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuAward size={14} /> JALUR SPESIALISASI
+                <LuAward size={13} /> Jalur Spesialisasi
               </span>
               <strong className="verify-field-value">Pemrograman {langName}</strong>
             </div>
 
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuFileCheck size={14} /> NOMOR ID KREDENSIAL
+                <LuFileCheck size={13} /> Nomor ID Kredensial
               </span>
               <div className="verify-id-row">
                 <code className="verify-id-code">{credentialId}</code>
@@ -162,7 +161,7 @@ export default function VerifyCertificate() {
                   onClick={() => handleCopy(credentialId)}
                   title="Salin ID Kredensial"
                 >
-                  {copied ? <LuCheck size={13} /> : <LuCopy size={13} />}
+                  {copied ? <LuCheck size={12} /> : <LuCopy size={12} />}
                   <span>{copied ? 'Tersalin' : 'Salin'}</span>
                 </button>
               </div>
@@ -170,10 +169,10 @@ export default function VerifyCertificate() {
 
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuBuilding size={14} /> ORGANISASI PENERBIT
+                <LuBuilding size={13} /> Organisasi Penerbit
               </span>
               <div className="verify-org-row">
-                <strong>Kinetix code</strong>
+                <span className="verify-org-name">Kinetix code</span>
                 <a
                   href={LINKEDIN_COMPANY_URL}
                   target="_blank"
@@ -181,16 +180,16 @@ export default function VerifyCertificate() {
                   className="verify-linkedin-org-badge"
                   title="Lihat profil perusahaan resmi Kinetix code di LinkedIn"
                 >
-                  <FaLinkedin size={14} />
-                  <span>Halaman Resmi LinkedIn</span>
-                  <LuExternalLink size={11} />
+                  <FaLinkedin size={13} />
+                  <span>LinkedIn</span>
+                  <LuExternalLink size={10} />
                 </a>
               </div>
             </div>
 
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuCalendar size={14} /> TANGGAL TERBIT
+                <LuCalendar size={13} /> Tanggal Terbit
               </span>
               <span className="verify-field-value">
                 {new Date().toLocaleDateString('id-ID', {
@@ -202,60 +201,11 @@ export default function VerifyCertificate() {
 
             <div className="verify-field-box">
               <span className="verify-field-label">
-                <LuCheckCheck size={14} /> STANDAR EVALUASI
+                <LuCheckCheck size={13} /> Standar Evaluasi
               </span>
               <span className="verify-field-value text-green">
-                Lulus Evaluasi Kompetensi (Passing Grade ≥ 55%)
+                Passing Grade ≥ 55% (Lulus)
               </span>
-            </div>
-          </div>
-
-          {/* 4 Pillars of Credibility (NO EMOJIS - PURE ICONS) */}
-          <div className="verify-pillars-section">
-            <h3 className="verify-section-heading">
-              <LuShieldCheck size={18} />
-              <span>Standar Pengujian &amp; Integritas Akademik</span>
-            </h3>
-            <div className="verify-pillars-grid">
-              <div className="verify-pillar-item">
-                <div className="verify-pillar-icon">
-                  <LuCheckCheck size={20} />
-                </div>
-                <div>
-                  <strong>Passing Grade Ambang Batas 55%</strong>
-                  <p>Wajib menuntaskan checkpoint logika acak dan evaluasi mandiri.</p>
-                </div>
-              </div>
-
-              <div className="verify-pillar-item">
-                <div className="verify-pillar-icon">
-                  <LuCode size={20} />
-                </div>
-                <div>
-                  <strong>Validasi Sintaksis &amp; Logika Riil</strong>
-                  <p>Kode dieksekusi langsung di browser tanpa simulator statis.</p>
-                </div>
-              </div>
-
-              <div className="verify-pillar-item">
-                <div className="verify-pillar-icon">
-                  <LuFileCheck size={20} />
-                </div>
-                <div>
-                  <strong>Nomor Seri Anti-Duplikasi</strong>
-                  <p>Setiap sertifikat memiliki identitas unik untuk verifikasi rekruter.</p>
-                </div>
-              </div>
-
-              <div className="verify-pillar-item">
-                <div className="verify-pillar-icon">
-                  <FaLinkedin size={18} />
-                </div>
-                <div>
-                  <strong>Terdaftar di LinkedIn Resmi</strong>
-                  <p>Terkoneksi ke halaman organisasi Kinetix code (ID: {LINKEDIN_COMPANY_ID}).</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -266,14 +216,14 @@ export default function VerifyCertificate() {
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt="Barcode Verifikasi Resmi" className="verify-qr-img" />
                 ) : (
-                  <LuQrCode size={90} className="verify-qr-placeholder" />
+                  <LuQrCode size={80} className="verify-qr-placeholder" />
                 )}
               </div>
               <div className="verify-qr-desc">
-                <strong>
-                  <LuQrCode size={14} /> Barcode Verifikasi Publik
+                <strong className="verify-qr-title">
+                  <LuQrCode size={14} /> Barcode Verifikasi
                 </strong>
-                <small>Pindai barcode ini melalui kamera ponsel untuk memvalidasi keaslian sertifikat.</small>
+                <p>Pindai barcode ini melalui kamera ponsel untuk memvalidasi keaslian sertifikat secara publik.</p>
               </div>
             </div>
 
@@ -289,8 +239,8 @@ export default function VerifyCertificate() {
                   })
                 }
               >
-                <LuDownload size={16} />
-                <span>Unduh File Sertifikat (PNG)</span>
+                <LuDownload size={15} />
+                <span>Unduh Sertifikat (PNG)</span>
               </button>
 
               <a
@@ -299,9 +249,9 @@ export default function VerifyCertificate() {
                 rel="noopener noreferrer"
                 className="btn-action-linkedin"
               >
-                <FaLinkedin size={16} />
-                <span>Pasang ke Profil LinkedIn</span>
-                <LuExternalLink size={13} />
+                <FaLinkedin size={15} />
+                <span>Tambah ke Profil LinkedIn</span>
+                <LuExternalLink size={12} />
               </a>
 
               <a
@@ -310,9 +260,9 @@ export default function VerifyCertificate() {
                 rel="noopener noreferrer"
                 className="btn-action-org"
               >
-                <FaLinkedin size={15} />
-                <span>Buka LinkedIn Kinetix code</span>
-                <LuExternalLink size={12} />
+                <FaLinkedin size={14} />
+                <span>Profil Kinetix Code di LinkedIn</span>
+                <LuExternalLink size={11} />
               </a>
             </div>
           </div>
